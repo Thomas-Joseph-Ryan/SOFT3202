@@ -1,0 +1,32 @@
+plugins {
+    id 'application'
+    id 'jacoco'
+}
+
+application {
+    mainClass = 'au.edu.sydney.soft3202.task1.ShoppingBasket'
+}
+
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+jacoco {
+    applyTo run
+}
+
+tasks.register('applicationCodeCoverageReport', JacocoReport) {
+    executionData run
+    sourceSets sourceSets.main
+}
+
+test {
+    useJUnitPlatform()
+}
