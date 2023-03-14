@@ -1,2 +1,4 @@
-package StoreAPI.Tests;public class Product {
+package StoreAPI.Tests;
+
+public class Product {
 }

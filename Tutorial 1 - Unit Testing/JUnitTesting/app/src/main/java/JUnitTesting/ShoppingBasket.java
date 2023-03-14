@@ -1,3 +1,5 @@
+package main.java.JUnitTesting;
+
 public class ShoppingBasket {
 
 
