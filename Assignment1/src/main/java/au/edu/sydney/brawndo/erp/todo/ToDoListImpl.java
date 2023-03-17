@@ -49,7 +49,7 @@ public class ToDoListImpl implements ToDoList{
         }
 
 //        Nothing to check for description
-        Task newTask = new TaskImpl(id);
+        Task newTask = new TaskImpl(id, dateTime, location, description);
         newTask.setDateTime(dateTime);
         newTask.setLocation(location);
         newTask.setDescription(description);
@@ -80,25 +80,110 @@ public class ToDoListImpl implements ToDoList{
 
     @Override
     public List<Task> findAll(boolean completed) {
-        return null;
+        List<Task> tasksList = new ArrayList<>(tasks.values());
+        List<Task> completedTasks = new ArrayList<>();
+        for (Task task : tasksList) {
+            if (task.isCompleted() == completed) {
+                completedTasks.add(task);
+            }
+        }
+        return completedTasks;
     }
 
     @Override
     public List<Task> findAll(LocalDateTime from, LocalDateTime to, Boolean completed) throws IllegalArgumentException {
-        return null;
+        if (from != null && to != null) {
+            if (from.isAfter(to)) {
+                throw new IllegalArgumentException("from cannot be chronologically after to.");
+            }
+        }
+
+        List<Task> filtered = new ArrayList<>();
+
+        for (Task task : new ArrayList<>(tasks.values())) {
+            if (completed != null && task.isCompleted() != completed) {
+                continue;
+            }
+
+            if (from != null && task.getDateTime().isBefore(from)) {
+                continue;
+            }
+
+            if (to != null && task.getDateTime().isAfter(to)) {
+                continue;
+            }
+
+            filtered.add(task);
+        }
+        return filtered;
     }
 
     @Override
     public List<Task> findAll(Map<Task.Field, String> params, LocalDateTime from, LocalDateTime to, Boolean completed, boolean andSearch) throws IllegalArgumentException {
-        return null;
+        List<Task> filtered = new ArrayList<>();
+        if (andSearch) {
+            List<Task> filteredDatesAndComplete = findAll(from, to, completed);
+            for (Task task : filteredDatesAndComplete) {
+                if (params == null) {
+                    filtered.add(task);
+                    continue;
+                }
+                filterParams(params, filtered, task);
+            }
+        } else {
+            for (Task task : new ArrayList<>(tasks.values())) {
+                if (completed != null && task.isCompleted() == completed) {
+                    filtered.add(task);
+                    continue;
+                }
+
+                if (from != null && to != null) {
+                    if (from.isAfter(to)) {
+                        throw new IllegalArgumentException("from cannot be chronologically after to.");
+                    }
+                }
+                if ((from == null || task.getDateTime().isAfter(from)) && (to == null || task.getDateTime().isBefore(to))) {
+                    filtered.add(task);
+                    continue;
+                }
+
+                filterParams(params, filtered, task);
+            }
+        }
+        return filtered;
+    }
+
+    private void filterParams(Map<Task.Field, String> params, List<Task> filtered, Task task) {
+        if (params != null) {
+            boolean twoParams = false;
+            int i = 0;
+            if (params.entrySet().size() == 2) {
+                twoParams = true;
+            }
+            for (Map.Entry<Task.Field, String> entry : params.entrySet()) {
+                String fieldValue = task.getField(entry.getKey());
+                if (fieldValue == null || !fieldValue.contentEquals(entry.getValue())) {
+                    break;
+                }
+
+                if (!twoParams) {
+                    filtered.add(task);
+                    break;
+                }
+
+                if (i == 0) {
+                    i++;
+                } else {
+                    filtered.add(task);
+                }
+            }
+        }
     }
 
     @Override
     public void clear() {
-
+        tasks.clear();
+        idCounter = 0;
     }
 
-    public Map<Integer, Task> getMap() {
-        return tasks;
-    }
 }

@@ -20,6 +20,6 @@ public class ToDoFactory {
      * @return  A concrete instance of a ToDoList
      */
     public ToDoList makeToDoList() {
-        return null;
+        return new ToDoListImpl();
     }
 }
