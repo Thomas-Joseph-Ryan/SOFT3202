@@ -7,8 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 
 public class SPFEAFacadeImplTest {
 
@@ -142,15 +145,15 @@ public class SPFEAFacadeImplTest {
 
 //        Valid call
         sut.addNewTask(localDateTime, description, location);
-        Mockito.verify(mockToDoList).add(null, localDateTime, description, location);
+        Mockito.verify(mockToDoList).add(nullable(Integer.class), any(localDateTime.getClass()), any(String.class), any(String.class));
 
         String newLocation = "CUSTOMER SITE";
         sut.addNewTask(localDateTime, description, newLocation);
-        Mockito.verify(mockToDoList).add(null, localDateTime, description, newLocation);
+        Mockito.verify(mockToDoList).add(nullable(Integer.class), any(localDateTime.getClass()), any(String.class), any(String.class));
 
         newLocation = "MOBILE";
         sut.addNewTask(localDateTime, description, newLocation);
-        Mockito.verify(mockToDoList).add(null, localDateTime, description, newLocation);
+        Mockito.verify(mockToDoList).add(nullable(Integer.class), any(localDateTime.getClass()), any(String.class), any(String.class));
     }
 
     @Test
@@ -167,8 +170,116 @@ public class SPFEAFacadeImplTest {
 
         sut.setToDoProvider(mockToDoList);
 
+        assertThrows(IllegalArgumentException.class, () -> {
+            sut.completeTask(1);
+        });
+
         sut.addNewTask(LocalDateTime.now().plusDays(2), "Do Homework", "HOME OFFICE");
 //        Adding two tasks so that an ID of 1 is guaranteed no matter if the id count starts at 0 or 1
         sut.addNewTask(LocalDateTime.now().plusDays(2), "Do laundry", "HOME OFFICE");
+
+        sut.completeTask(1);
+
+        assertThrows(IllegalStateException.class, () -> {
+           sut.completeTask(1);
+        });
     }
+
+    @Test
+    void testSetToDoProvider() {
+        ToDoList mockToDoList = Mockito.mock(ToDoList.class);
+        sut.setToDoProvider(null);
+
+        assertThrows(IllegalStateException.class, () -> {
+            sut.getAllTasks();
+        });
+
+        sut.setToDoProvider(mockToDoList);
+
+        sut.getAllTasks();
+        Mockito.verify(mockToDoList).findAll();
+
+        ToDoList mockToDoList2 = Mockito.mock(ToDoList.class);
+
+        sut.setToDoProvider(mockToDoList2);
+        sut.getAllTasks();
+        Mockito.verify(mockToDoList2).findAll();
+    }
+
+    @Test
+    void getAllTasks() {
+        assertThrows(IllegalStateException.class, () -> {
+            sut.getAllTasks();
+        });
+
+        ToDoList mockToDoList = Mockito.mock(ToDoList.class);
+
+        sut.setToDoProvider(mockToDoList);
+
+        sut.getAllTasks();
+        Mockito.verify(mockToDoList).findAll();
+    }
+
+    @Test
+    void getCustomerById() {
+        //        Test Valid input okay
+        sut.addCustomer("pika", "chu", "+(61)412121212", "pika_chu@pokedex.net");
+        assertEquals(1, sut.getAllCustomers().size());
+
+//        Test null phone only
+        sut.addCustomer("tom", "ryan", null, "tom@gmail.com");
+        assertEquals(2, sut.getAllCustomers().size());
+
+//        Test null email only
+        sut.addCustomer("lord", "farquad", "+(61)432678945",  null);
+        assertEquals(3, sut.getAllCustomers().size());
+
+
+//        Test empty fname
+        assertThrows(IllegalArgumentException.class, () -> {
+            sut.getCustomerID("", "chu");
+        });
+
+//        Test null fname
+        assertThrows(IllegalArgumentException.class, () -> {
+            sut.getCustomerID(null, "chu");
+        });
+
+//        Test empty lname
+        assertThrows(IllegalArgumentException.class, () -> {
+            sut.getCustomerID("pika", "");
+        });
+
+//        Test null lname
+        assertThrows(IllegalArgumentException.class, () -> {
+            sut.getCustomerID("pika", null);
+        });
+
+        assertEquals(1, sut.getCustomerID("pika", "chu"));
+        assertEquals(2, sut.getCustomerID("tom", "ryan"));
+        assertEquals(3, sut.getCustomerID("lord", "farquad"));
+    }
+
+    @Test
+    void testGetAllCustomers() {
+        assertEquals(0, sut.getAllCustomers().size());
+//        Test Valid input okay
+        sut.addCustomer("pika", "chu", "+(61)412121212", "pika_chu@pokedex.net");
+        assertEquals(1, sut.getAllCustomers().size());
+
+        assertEquals("pika, chu", sut.getAllCustomers().get(0));
+
+//        Test null phone only
+        sut.addCustomer("tom", "ryan", null, "tom@gmail.com");
+        assertEquals(2, sut.getAllCustomers().size());
+
+//        Test null email only
+        sut.addCustomer("lord", "farquad", "+(61)432678945",  null);
+        assertEquals(3, sut.getAllCustomers().size());
+
+        assertEquals(3, sut.getAllCustomers().size());
+    }
+
+
+
 }
