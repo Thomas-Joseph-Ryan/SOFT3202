@@ -223,15 +223,15 @@ public class SPFEAFacadeImplTest {
     @Test
     void getCustomerById() {
         //        Test Valid input okay
-        sut.addCustomer("pika", "chu", "+(61)412121212", "pika_chu@pokedex.net");
+        int id1 = sut.addCustomer("pika", "chu", "+(61)412121212", "pika_chu@pokedex.net");
         assertEquals(1, sut.getAllCustomers().size());
 
 //        Test null phone only
-        sut.addCustomer("tom", "ryan", null, "tom@gmail.com");
+        int id2 = sut.addCustomer("tom", "ryan", null, "tom@gmail.com");
         assertEquals(2, sut.getAllCustomers().size());
 
 //        Test null email only
-        sut.addCustomer("lord", "farquad", "+(61)432678945",  null);
+        int id3 = sut.addCustomer("lord", "farquad", "+(61)432678945",  null);
         assertEquals(3, sut.getAllCustomers().size());
 
 
@@ -255,9 +255,9 @@ public class SPFEAFacadeImplTest {
             sut.getCustomerID("pika", null);
         });
 
-        assertEquals(1, sut.getCustomerID("pika", "chu"));
-        assertEquals(2, sut.getCustomerID("tom", "ryan"));
-        assertEquals(3, sut.getCustomerID("lord", "farquad"));
+        assertEquals(id1, sut.getCustomerID("pika", "chu"));
+        assertEquals(id2, sut.getCustomerID("tom", "ryan"));
+        assertEquals(id3, sut.getCustomerID("lord", "farquad"));
     }
 
     @Test
@@ -276,10 +276,171 @@ public class SPFEAFacadeImplTest {
 //        Test null email only
         sut.addCustomer("lord", "farquad", "+(61)432678945",  null);
         assertEquals(3, sut.getAllCustomers().size());
-
-        assertEquals(3, sut.getAllCustomers().size());
     }
 
+    @Test
+    void testGetCustomerPhone() {
+        assertEquals(0, sut.getAllCustomers().size());
+//        Test Valid input okay
+        int id1 = sut.addCustomer("pika", "chu", "+(61)412121212", "pika_chu@pokedex.net");
+        assertEquals(1, sut.getAllCustomers().size());
 
+        assertEquals("pika, chu", sut.getAllCustomers().get(0));
+
+//        Test null phone only
+        int id2 = sut.addCustomer("tom", "ryan", null, "tom@gmail.com");
+        assertEquals(2, sut.getAllCustomers().size());
+
+//        Test null email only
+        int id3 = sut.addCustomer("lord", "farquad", "+(61)432678945",  null);
+        assertEquals(3, sut.getAllCustomers().size());
+
+        assertEquals("+(61)412121212", sut.getCustomerPhone(id1));
+        assertNull(sut.getCustomerPhone(id2));
+        assertEquals("+(61)432678945", sut.getCustomerPhone(id3));
+        assertThrows(IllegalArgumentException.class, ()-> {
+            sut.getCustomerPhone(20);
+        });
+    }
+
+    @Test
+    void testSetCustomerPhone() {
+        assertEquals(0, sut.getAllCustomers().size());
+//        Test Valid input okay
+        int id1 = sut.addCustomer("pika", "chu", "+(61)412121212", "pika_chu@pokedex.net");
+        assertEquals(1, sut.getAllCustomers().size());
+
+        assertEquals("pika, chu", sut.getAllCustomers().get(0));
+
+//        Test null phone only
+        int id2 = sut.addCustomer("tom", "ryan", null, "tom@gmail.com");
+        assertEquals(2, sut.getAllCustomers().size());
+
+//        Test null email only
+        int id3 = sut.addCustomer("lord", "farquad", "+(61)432678945",  null);
+        assertEquals(3, sut.getAllCustomers().size());
+
+        sut.setCustomerPhone(id1, null);
+        assertNull(sut.getCustomerPhone(id1));
+
+        sut.setCustomerPhone(id2, "+(21)438094012");
+        assertEquals("+(21)438094012", sut.getCustomerPhone(id2));
+
+        sut.setCustomerPhone(id3, "+(99)415708932");
+        assertEquals("+(99)415708932", sut.getCustomerPhone(id3));
+
+        assertThrows(IllegalArgumentException.class, ()-> {
+            sut.setCustomerPhone(id3, null);
+        });
+
+        assertThrows(IllegalArgumentException.class, ()-> {
+            sut.setCustomerPhone(20, null);
+        });
+
+        assertThrows(IllegalArgumentException.class, ()-> {
+            sut.setCustomerPhone(id3, "0451-875-829");
+        });
+
+        assertThrows(IllegalArgumentException.class, ()-> {
+            sut.setCustomerPhone(id3, "");
+        });
+    }
+
+    @Test
+    void testGetCustomerEmail() {
+        assertEquals(0, sut.getAllCustomers().size());
+//        Test Valid input okay
+        int id1 = sut.addCustomer("pika", "chu", "+(61)412121212", "pika_chu@pokedex.net");
+        assertEquals(1, sut.getAllCustomers().size());
+
+        assertEquals("pika, chu", sut.getAllCustomers().get(0));
+
+//        Test null phone only
+        int id2 = sut.addCustomer("tom", "ryan", null, "tom@gmail.com");
+        assertEquals(2, sut.getAllCustomers().size());
+
+//        Test null email only
+        int id3 = sut.addCustomer("lord", "farquad", "+(61)432678945",  null);
+        assertEquals(3, sut.getAllCustomers().size());
+
+        assertEquals("pika_chu@pokedex.net", sut.getCustomerEmail(id1));
+        assertEquals("tom@gmail.com", sut.getCustomerEmail(id2));
+        assertNull(sut.getCustomerEmail(id3));
+        assertThrows(IllegalArgumentException.class, ()-> {
+            sut.getCustomerEmail(20);
+        });
+    }
+
+    @Test
+    void testSetCustomerEmail() {
+        assertEquals(0, sut.getAllCustomers().size());
+//        Test Valid input okay
+        int id1 = sut.addCustomer("pika", "chu", "+(61)412121212", "pika_chu@pokedex.net");
+        assertEquals(1, sut.getAllCustomers().size());
+
+        assertEquals("pika, chu", sut.getAllCustomers().get(0));
+
+//        Test null phone only
+        int id2 = sut.addCustomer("tom", "ryan", null, "tom@gmail.com");
+        assertEquals(2, sut.getAllCustomers().size());
+
+//        Test null email only
+        int id3 = sut.addCustomer("lord", "farquad", "+(61)432678945",  null);
+        assertEquals(3, sut.getAllCustomers().size());
+
+        sut.setCustomerEmail(id1, null);
+        assertNull(sut.getCustomerEmail(id1));
+
+        sut.setCustomerEmail(id2, "newtom@gmail.com");
+        assertEquals("newtom@gmail.com", sut.getCustomerEmail(id2));
+
+        sut.setCustomerEmail(id3, "ash@pokedex.net");
+        assertEquals("ash@pokedex.net", sut.getCustomerEmail(id3));
+
+        assertThrows(IllegalArgumentException.class, ()-> {
+            sut.setCustomerEmail(id2, null);
+        });
+
+        assertThrows(IllegalArgumentException.class, ()-> {
+            sut.setCustomerEmail(20, null);
+        });
+
+//        THE BELOW FUNCTIONALITY IS NOT EXPLICITY STATED
+
+        assertThrows(IllegalArgumentException.class, ()-> {
+            sut.setCustomerEmail(id2, "");
+        });
+
+        assertThrows(IllegalArgumentException.class, ()-> {
+            sut.setCustomerEmail(id2, "ThomasATgmail.com");
+        });
+    }
+
+    @Test
+    void testRemoveCustomer() {
+        assertEquals(0, sut.getAllCustomers().size());
+//        Test Valid input okay
+        int id1 = sut.addCustomer("pika", "chu", "+(61)412121212", "pika_chu@pokedex.net");
+        assertEquals(1, sut.getAllCustomers().size());
+
+        assertEquals("pika, chu", sut.getAllCustomers().get(0));
+
+//        Test null phone only
+        int id2 = sut.addCustomer("tom", "ryan", null, "tom@gmail.com");
+        assertEquals(2, sut.getAllCustomers().size());
+
+//        Test null email only
+        int id3 = sut.addCustomer("lord", "farquad", "+(61)432678945",  null);
+        assertEquals(3, sut.getAllCustomers().size());
+
+        sut.removeCustomer(id1);
+//        Probably could change this check condition
+        assertEquals(2, sut.getAllCustomers().size());
+        assertNull(sut.getCustomerID("pika", "chu"));
+
+        assertThrows(IllegalArgumentException.class, ()-> {
+            sut.removeCustomer(20);
+        });
+    }
 
 }
