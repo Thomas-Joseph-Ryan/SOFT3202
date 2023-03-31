@@ -1,0 +1,21 @@
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.0'
+    testImplementation "net.jqwik:jqwik:1.7.1"
+    testImplementation "org.assertj:assertj-core:3.23.1"
+}
+
+application {
+    mainClass = 'au.edu.sydney.soft3202.task1.ShoppingBasket'
+}
+
+test {
+    useJUnitPlatform()
+}

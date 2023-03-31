@@ -1,3 +1,5 @@
+package PerformanceTesting;
+
 import java.lang.reflect.Executable;
 
 
@@ -17,7 +19,7 @@ public class PerformanceTesting {
             new Worker() {
                 @Override
                 public void work() {
-                    stringTester.strConcat3("hello", "world");
+                    stringTester.strConcat3("hello", "world\n");
                 }
             }
         };
