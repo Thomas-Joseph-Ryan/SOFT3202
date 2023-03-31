@@ -1,0 +1,8 @@
+.jqwik-database
+gradle
+gradlew
+gradlew.bat
+.gradle
+.idea
+TestPlan.jmx
+build
