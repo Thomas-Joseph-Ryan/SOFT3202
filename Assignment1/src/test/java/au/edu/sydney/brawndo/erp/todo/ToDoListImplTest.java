@@ -56,6 +56,11 @@ public class ToDoListImplTest {
     @Test
     void testAddInternalThenExternal() {
 //        Behaviour not specified yet
+        assertEquals(0, sut.findAll().size());
+        sut.add(null, LocalDateTime.now(), "house", "feed da cat");
+        assertEquals(1, sut.findAll().size());
+        sut.add(3, LocalDateTime.now(), "kitchen", "Dishwasher");
+        assertEquals(2, sut.findAll().size());
     }
 
     @Test

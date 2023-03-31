@@ -7,8 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -145,15 +143,15 @@ public class SPFEAFacadeImplTest {
 
 //        Valid call
         sut.addNewTask(localDateTime, description, location);
-        Mockito.verify(mockToDoList).add(nullable(Integer.class), any(localDateTime.getClass()), any(String.class), any(String.class));
+        Mockito.verify(mockToDoList).add(nullable(Integer.class), any(LocalDateTime.class), any(String.class), any(String.class));
 
         String newLocation = "CUSTOMER SITE";
         sut.addNewTask(localDateTime, description, newLocation);
-        Mockito.verify(mockToDoList).add(nullable(Integer.class), any(localDateTime.getClass()), any(String.class), any(String.class));
+        Mockito.verify(mockToDoList).add(nullable(Integer.class), any(LocalDateTime.class), any(String.class), any(String.class));
 
         newLocation = "MOBILE";
         sut.addNewTask(localDateTime, description, newLocation);
-        Mockito.verify(mockToDoList).add(nullable(Integer.class), any(localDateTime.getClass()), any(String.class), any(String.class));
+        Mockito.verify(mockToDoList).add(nullable(Integer.class), any(LocalDateTime.class), any(String.class), any(String.class));
     }
 
     @Test
@@ -176,11 +174,19 @@ public class SPFEAFacadeImplTest {
             sut.completeTask(1);
         });
 
+        Mockito.when(mockToDoList.add(nullable(Integer.class), any(LocalDateTime.class), any(String.class), any(String.class))).thenReturn(mockTask);
+
         sut.addNewTask(LocalDateTime.now().plusDays(2), "Do Homework", "HOME OFFICE");
-//        Adding two tasks so that an ID of 1 is guaranteed no matter if the id count starts at 0 or 1
-        sut.addNewTask(LocalDateTime.now().plusDays(2), "Do laundry", "HOME OFFICE");
+
+        Mockito.when(mockTask.getID()).thenReturn(1);
+
+        Mockito.when(mockTask.isCompleted()).thenReturn(false);
 
         sut.completeTask(1);
+
+        Mockito.verify(mockTask).complete();
+
+        Mockito.when(mockTask.isCompleted()).thenReturn(true);
 
         assertThrows(IllegalStateException.class, () -> {
            sut.completeTask(1);
