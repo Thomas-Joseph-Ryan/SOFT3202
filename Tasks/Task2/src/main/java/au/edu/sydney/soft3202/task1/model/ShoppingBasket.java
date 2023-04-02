@@ -1,4 +1,4 @@
-package au.edu.sydney.soft3202.task1;
+package au.edu.sydney.soft3202.task1.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;

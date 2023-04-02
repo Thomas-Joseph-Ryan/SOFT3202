@@ -1,5 +1,6 @@
 package au.edu.sydney.soft3202.task1;
 
+import au.edu.sydney.soft3202.task1.model.ShoppingBasket;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 

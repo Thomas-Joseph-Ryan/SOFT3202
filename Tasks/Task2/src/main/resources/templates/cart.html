@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Your Cart</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <link rel="stylesheet" th:href="@{css/styles.css}">
+</head>
+<body>
+  <h1 class="cart-title">Your Cart</h1>
+  <form method="post" th:action="@{/update-cart-count}">
+    <table>
+      <thead>
+      <tr>
+        <th>Item</th>
+        <th>Count</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="entry : ${items}">
+        <td th:text="${entry.key}"></td>
+        <td>
+          <input type="text" name="values[__${entry.key}__]" th:value="${entry.value}" />
+        </td>
+      </tr>
+      </tbody>
+    </table>
+    <button type="submit">Update Map</button>
+  </form>
+</body>
+</html>

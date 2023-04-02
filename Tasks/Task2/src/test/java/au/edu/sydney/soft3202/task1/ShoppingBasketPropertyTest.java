@@ -1,5 +1,6 @@
 package au.edu.sydney.soft3202.task1;
 
+import au.edu.sydney.soft3202.task1.model.ShoppingBasket;
 import net.jqwik.api.Property;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -1,14 +1,13 @@
-package au.edu.sydney.soft3202.task1;
+package au.edu.sydney.soft3202.task1.controllers;
 
+import au.edu.sydney.soft3202.task1.model.Cart;
+import au.edu.sydney.soft3202.task1.model.ShoppingBasket;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.security.SecureRandom;
@@ -56,13 +55,31 @@ public class ShoppingController {
         return ResponseEntity.status(HttpStatus.FOUND).headers(headers).location(URI.create("/cart")).build();
     }
 
+    @PostMapping("/update-cart-count")
+    public String updateMap(@RequestParam Map<String, String> values, Model model) {
+        // Iterate over the values map and update the corresponding entries in myMap
+        for (String key : values.keySet()) {
+            String value = values.get(key);
+            System.out.println(value);
+//            myMap.put(key, value);
+        }
+//        // Add the updated myMap to the model and return the view
+//        model.addAttribute("myMap", myMap);
+        return "cart";
+    }
+
+
     @GetMapping("/cart")
-    public ResponseEntity<String> cart(@CookieValue(value = "session", defaultValue = "") String sessionToken) {
+    public String cart(@CookieValue(value = "session", defaultValue = "") String sessionToken, Model model) {
         if (!sessions.containsKey(sessionToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorised.\n");
+            return "unauthorized";
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body("[" + counter + "]");
+        Cart cart = Cart.getCart(sessions.get(sessionToken));
+
+        model.addAttribute("items", cart.getItems());
+
+        return "cart";
     }
 
     @GetMapping("/counter")
@@ -96,8 +113,13 @@ public class ShoppingController {
         if (!sessions.containsKey(sessionToken)) {
             return "login";
         }
-        return greeting(name, model);
+        return cart(sessionToken, model);
     }
 
+    @GetMapping("/unauthorized")
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public String unauthorized() {
+        return "unauthorized";
+    }
 
 }
