@@ -23,7 +23,7 @@ public class ShoppingController {
     private final HexFormat hexFormatter = HexFormat.of();
 
     private final AtomicLong counter = new AtomicLong();
-    ShoppingBasket shoppingBasket = new ShoppingBasket();
+//    ShoppingBasket shoppingBasket = new ShoppingBasket();
 
     Map<String, String> sessions = new HashMap<>();
 
@@ -59,7 +59,7 @@ public class ShoppingController {
     public String updateMap(@RequestParam Map<String, String> values,
                             @CookieValue(value = "session", defaultValue = "") String sessionToken,
                             Model model) {
-        Cart cart = Cart.getCart(sessions.get(sessionToken));
+        ShoppingBasket cart = ShoppingBasket.getInstance(sessions.get(sessionToken));
         // Iterate over the values map and update the corresponding entries in myMap
         for (String key : values.keySet()) {
             Integer value = Integer.valueOf(values.get(key));
@@ -107,12 +107,12 @@ public class ShoppingController {
         return ResponseEntity.status(HttpStatus.OK).body("[" + counter + "]");
     }
 
-    @GetMapping("/cost")
-    public ResponseEntity<String> cost() {
-        return ResponseEntity.status(HttpStatus.OK).body(
-                shoppingBasket.getValue() == null ? "0" : shoppingBasket.getValue().toString()
-        );
-    }
+//    @GetMapping("/cost")
+//    public ResponseEntity<String> cost() {
+//        return ResponseEntity.status(HttpStatus.OK).body(
+//                shoppingBasket.getValue() == null ? "0" : shoppingBasket.getValue().toString()
+//        );
+//    }
 
     @GetMapping("/greeting")
     public String greeting(

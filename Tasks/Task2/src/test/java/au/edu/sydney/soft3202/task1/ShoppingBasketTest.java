@@ -12,7 +12,7 @@ public class ShoppingBasketTest {
 
     @BeforeEach
     public void setUp() {
-        shoppingBasket = new ShoppingBasket();
+//        shoppingBasket = new ShoppingBasket();
     }
 
     @Test

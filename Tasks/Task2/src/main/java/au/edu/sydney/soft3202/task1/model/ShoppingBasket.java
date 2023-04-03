@@ -15,10 +15,12 @@ public class ShoppingBasket {
     HashMap<String, Double> values;
     String[] names = {"apple", "orange", "pear", "banana"};
 
+    private static Map<String, ShoppingBasket> instances = new HashMap<>();
+
     /**
     * Creates a new, empty ShoppingBasket object
     */
-    public ShoppingBasket() {
+    private ShoppingBasket() {
         this.items = new HashMap<>();
         this.values = new HashMap<>();
 
@@ -30,6 +32,14 @@ public class ShoppingBasket {
         this.values.put("orange", 1.25);
         this.values.put("pear", 3.00);
         this.values.put("banana", 4.95);
+    }
+
+    public static ShoppingBasket getInstance(String sessionToken) {
+        if (!instances.containsKey(sessionToken)) {
+            instances.put(sessionToken, new ShoppingBasket());
+        }
+
+        return instances.get(sessionToken);
     }
 
     /**
@@ -76,6 +86,16 @@ public class ShoppingBasket {
         this.items.put(stringItem, newVal);
 
         return true;
+    }
+
+    /**
+     * This method is used by forward clients using this class.
+     * It abstracts the logic of this method away from the client.
+     * @param item Name of item
+     * @param value New count of the item in the cart
+     */
+    public void updateItemCount(String item, Integer value) {
+//        Use the add and remove item count methods.
     }
 
     /**

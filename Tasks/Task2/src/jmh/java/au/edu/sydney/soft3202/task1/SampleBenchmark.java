@@ -12,7 +12,7 @@ public class SampleBenchmark {
     @Measurement(iterations = 1)
     @Benchmark @BenchmarkMode(Mode.Throughput)
     public void addItemBenchmark(Blackhole bh) {
-        ShoppingBasket sb = new ShoppingBasket();
-        sb.addItem("apple", 1);
+//        ShoppingBasket sb = new ShoppingBasket();
+//        sb.addItem("apple", 1);
     }
 }

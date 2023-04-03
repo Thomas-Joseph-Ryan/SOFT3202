@@ -37,7 +37,7 @@ public class Cart {
         items.replace(item, count);
     }
 
-    public void insertNewItem(String item, Integer count) {
+    public void insertNewItem(String item, Integer cost) {
         items.put(item, 0);
     }
 }
