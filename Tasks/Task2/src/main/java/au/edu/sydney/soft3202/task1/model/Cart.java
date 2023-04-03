@@ -32,4 +32,12 @@ public class Cart {
     public Map<String, Integer> getItems() {
         return items;
     }
+
+    public void updateItemCount(String item, Integer count) {
+        items.replace(item, count);
+    }
+
+    public void insertNewItem(String item, Integer count) {
+        items.put(item, 0);
+    }
 }

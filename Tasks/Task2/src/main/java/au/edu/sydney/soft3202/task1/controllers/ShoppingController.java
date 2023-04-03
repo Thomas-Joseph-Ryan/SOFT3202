@@ -56,16 +56,35 @@ public class ShoppingController {
     }
 
     @PostMapping("/update-cart-count")
-    public String updateMap(@RequestParam Map<String, String> values, Model model) {
+    public String updateMap(@RequestParam Map<String, String> values,
+                            @CookieValue(value = "session", defaultValue = "") String sessionToken,
+                            Model model) {
+        Cart cart = Cart.getCart(sessions.get(sessionToken));
         // Iterate over the values map and update the corresponding entries in myMap
         for (String key : values.keySet()) {
-            String value = values.get(key);
-            System.out.println(value);
-//            myMap.put(key, value);
+            Integer value = Integer.valueOf(values.get(key));
+            cart.updateItemCount(key, value);
         }
 //        // Add the updated myMap to the model and return the view
-//        model.addAttribute("myMap", myMap);
+        model.addAttribute("items", cart.getItems());
+
         return "cart";
+    }
+
+    @PostMapping("/insert-new-item")
+    public String insertNewItem(
+            @CookieValue(value = "session", defaultValue = "") String sessionToken,
+            Model model,
+            @RequestParam (value = "new-name") String newName,
+            @RequestParam (value = "new-cost") String newCount
+    ) {
+        if (!sessions.containsKey(sessionToken)) {
+            return "unauthorized";
+        }
+
+        Cart cart = Cart.getCart(sessions.get(sessionToken));
+        cart.insertNewItem(newName, Integer.valueOf(newCount));
+        return "newname";
     }
 
 
@@ -91,14 +110,14 @@ public class ShoppingController {
     @GetMapping("/cost")
     public ResponseEntity<String> cost() {
         return ResponseEntity.status(HttpStatus.OK).body(
-            shoppingBasket.getValue() == null ? "0" : shoppingBasket.getValue().toString()
+                shoppingBasket.getValue() == null ? "0" : shoppingBasket.getValue().toString()
         );
     }
 
     @GetMapping("/greeting")
     public String greeting(
-        @RequestParam(name="name", required=false, defaultValue="World") String name,
-        Model model
+            @RequestParam(name = "name", required = false, defaultValue = "World") String name,
+            Model model
     ) {
         model.addAttribute("name", name);
         return "greeting";
@@ -107,7 +126,7 @@ public class ShoppingController {
     @GetMapping("/")
     public String accessSite(
             @CookieValue(value = "session", defaultValue = "") String sessionToken,
-            @RequestParam(name="name", required=false, defaultValue="World") String name,
+            @RequestParam(name = "name", required = false, defaultValue = "World") String name,
             Model model
     ) {
         if (!sessions.containsKey(sessionToken)) {
@@ -115,6 +134,24 @@ public class ShoppingController {
         }
         return cart(sessionToken, model);
     }
+
+    @GetMapping("/logout")
+    public String logout(
+            @CookieValue(value = "session", defaultValue = "") String sessionToken
+    ) {
+        sessions.remove(sessionToken);
+        return "login";
+    }
+
+    @GetMapping("/newname")
+    public String newName(
+            @CookieValue(value = "session", defaultValue = "") String sessionToken) {
+        if (!sessions.containsKey(sessionToken)) {
+            return "unauthorized";
+        }
+        return "newname";
+    }
+
 
     @GetMapping("/unauthorized")
     @ResponseStatus(HttpStatus.UNAUTHORIZED)

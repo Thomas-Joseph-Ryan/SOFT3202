@@ -1,30 +1,38 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <title>Your Cart</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <link rel="stylesheet" th:href="@{css/styles.css}">
+    <title>Your Cart</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" th:href="@{css/styles.css}">
 </head>
 <body>
-  <h1 class="cart-title">Your Cart</h1>
-  <form method="post" th:action="@{/update-cart-count}">
+
+<a href="/logout">
+    <button>Log Out</button>
+</a>
+<h1 class="cart-title">Your Cart</h1>
+<form method="post" th:action="@{/update-cart-count}">
     <table>
-      <thead>
-      <tr>
-        <th>Item</th>
-        <th>Count</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr th:each="entry : ${items}">
-        <td th:text="${entry.key}"></td>
-        <td>
-          <input type="text" name="values[__${entry.key}__]" th:value="${entry.value}" />
-        </td>
-      </tr>
-      </tbody>
+        <thead>
+        <tr>
+            <th>Item</th>
+            <th>Count</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!--      Create a row for each item-->
+        <tr th:each="entry : ${items}">
+            <!--        First column should be the key-->
+            <td th:text="${entry.key}"></td>
+            <td>
+                <!--          Second column should be the value of the key, and also an input-->
+                <input type="text" th:name="${entry.key}" th:value="${entry.value}"/>
+            </td>
+        </tr>
+        </tbody>
     </table>
     <button type="submit">Update Map</button>
-  </form>
+</form>
+<a href="/newname"><button>Insert a new Item name</button></a>
 </body>
 </html>

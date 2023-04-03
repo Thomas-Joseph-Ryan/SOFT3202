@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Your Cart</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <link rel="stylesheet" th:href="@{css/styles.css}">
+</head>
+<body>
+    <a href="/cart"><button>Back to Cart</button></a>
+    <form method="post" th:action="@{/insert-new-item}">
+      <table>
+        <thead>
+        <tr>
+          <th>Item</th>
+          <th>Cost</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>
+            <input type="text" name="new-name" placeholder="New name here">
+          </td>
+          <td>
+            <input  type="text" name="new-cost" placeholder="New cost here">
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      <button type="submit">Insert new Item</button>
+    </form>
+</body>
+</html>
