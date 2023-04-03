@@ -89,13 +89,42 @@ public class ShoppingBasket {
     }
 
     /**
-     * This method is used by forward clients using this class.
-     * It abstracts the logic of this method away from the client.
-     * @param item Name of item
-     * @param value New count of the item in the cart
+     * Updates count of item in basket
+     * @param item item to be updated
+     * @param count new count of item
      */
-    public void updateItemCount(String item, Integer value) {
-//        Use the add and remove item count methods.
+    public void updateItemCount(String item, Integer count) throws IllegalArgumentException {
+
+//        if (item == null) throw new IllegalArgumentException("Item is invalid"); redundant because
+//        string will only ever be provided through fixed input
+
+        String stringItem = item.toLowerCase();
+
+        if (!this.items.containsKey(stringItem)) {
+            return;
+        }
+        if (count < 1) throw new IllegalArgumentException(count + " is invalid count.");
+
+        this.items.replace(stringItem, count);
+    }
+
+    /**
+     * Inserts a new item for this specific instance of the shopping basket.
+     * If item name is already present, nothing will be changed.
+     * Throws IllegalArgumentException if item cost is < 0
+     * @param item New item name
+     * @param cost New item cost
+     */
+    public void insertNewItem(String item, Double cost) {
+        if (this.items.containsKey(item.toLowerCase())) {
+            return;
+        }
+        if (cost < 0) {
+            throw new IllegalArgumentException(cost + " must be greater then zero");
+        }
+
+        this.values.put(item, cost);
+        this.items.put(item, 0);
     }
 
     /**

@@ -63,7 +63,12 @@ public class ShoppingController {
         // Iterate over the values map and update the corresponding entries in myMap
         for (String key : values.keySet()) {
             Integer value = Integer.valueOf(values.get(key));
-            cart.updateItemCount(key, value);
+            try {
+                cart.updateItemCount(key, value);
+            } catch (IllegalArgumentException e) {
+                model.addAttribute("e", e);
+                return "invalid";
+            }
         }
 //        // Add the updated myMap to the model and return the view
         model.addAttribute("items", cart.getItems());
@@ -82,8 +87,8 @@ public class ShoppingController {
             return "unauthorized";
         }
 
-        Cart cart = Cart.getCart(sessions.get(sessionToken));
-        cart.insertNewItem(newName, Integer.valueOf(newCount));
+        ShoppingBasket shoppingBasket = ShoppingBasket.getInstance(sessions.get(sessionToken));
+        shoppingBasket.insertNewItem(newName, Double.valueOf(newCount));
         return "newname";
     }
 
