@@ -1,6 +1,5 @@
 package au.edu.sydney.soft3202.task1.controllers;
 
-import au.edu.sydney.soft3202.task1.model.Cart;
 import au.edu.sydney.soft3202.task1.model.ShoppingBasket;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -8,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.URI;
 import java.security.SecureRandom;
@@ -77,19 +78,25 @@ public class ShoppingController {
     }
 
     @PostMapping("/insert-new-item")
-    public String insertNewItem(
+    public ModelAndView insertNewItem(
             @CookieValue(value = "session", defaultValue = "") String sessionToken,
-            Model model,
+            RedirectAttributes redirectAttributes,
             @RequestParam (value = "new-name") String newName,
             @RequestParam (value = "new-cost") String newCount
     ) {
         if (!sessions.containsKey(sessionToken)) {
-            return "unauthorized";
+            return new ModelAndView("redirect:/unauthorized");
         }
 
         ShoppingBasket shoppingBasket = ShoppingBasket.getInstance(sessions.get(sessionToken));
-        shoppingBasket.insertNewItem(newName, Double.valueOf(newCount));
-        return "newname";
+        try {
+            shoppingBasket.insertNewItem(newName, Double.valueOf(newCount));
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("e", e);
+            return new ModelAndView("redirect:/invalid");
+        }
+
+        return new ModelAndView("redirect:/cart");
     }
 
 
@@ -99,9 +106,9 @@ public class ShoppingController {
             return "unauthorized";
         }
 
-        Cart cart = Cart.getCart(sessions.get(sessionToken));
+        ShoppingBasket shoppingBasket = ShoppingBasket.getInstance(sessions.get(sessionToken));
 
-        model.addAttribute("items", cart.getItems());
+        model.addAttribute("items", shoppingBasket.getItems());
 
         return "cart";
     }
@@ -162,6 +169,12 @@ public class ShoppingController {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public String unauthorized() {
         return "unauthorized";
+    }
+
+    @GetMapping("/invalid")
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    public String invalid() {
+        return "invalid";
     }
 
 }

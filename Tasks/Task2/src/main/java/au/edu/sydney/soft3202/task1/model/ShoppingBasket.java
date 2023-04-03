@@ -103,7 +103,7 @@ public class ShoppingBasket {
         if (!this.items.containsKey(stringItem)) {
             return;
         }
-        if (count < 1) throw new IllegalArgumentException(count + " is invalid count.");
+        if (count < 0) throw new IllegalArgumentException(count + " is invalid count.");
 
         this.items.replace(stringItem, count);
     }
@@ -120,7 +120,7 @@ public class ShoppingBasket {
             return;
         }
         if (cost < 0) {
-            throw new IllegalArgumentException(cost + " must be greater then zero");
+            throw new IllegalArgumentException("cost " + cost + " must be greater then zero");
         }
 
         this.values.put(item, cost);
