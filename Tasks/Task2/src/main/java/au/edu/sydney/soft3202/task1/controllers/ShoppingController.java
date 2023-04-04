@@ -1,6 +1,9 @@
 package au.edu.sydney.soft3202.task1.controllers;
 
 import au.edu.sydney.soft3202.task1.model.ShoppingBasket;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.boot.Banner;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.URI;
 import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HexFormat;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Controller
@@ -31,12 +31,16 @@ public class ShoppingController {
     String[] users = {"A", "B", "C", "D"};
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestParam(value = "user", defaultValue = "") String user) {
+    public ModelAndView login(@RequestParam(value = "user", defaultValue = "") String user,
+                              RedirectAttributes redirectAttributes,
+                              HttpServletResponse response
+    ) {
 
         // We are just checking the username, in the real world you would also check their password here
         // or authenticate the user some other way.
         if (!Arrays.asList(users).contains(user)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid user.\n");
+            redirectAttributes.addFlashAttribute("e", "Invalid User.");
+            return new ModelAndView("redirect:/invalid");
         }
 
         // Generate the session token.
@@ -48,18 +52,19 @@ public class ShoppingController {
         sessions.put(sessionToken, user);
 
         // Create HTTP headers including the instruction for the browser to store the session token in a cookie.
-        String setCookieHeaderValue = String.format("session=%s; Path=/; HttpOnly; SameSite=Strict;", sessionToken);
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Set-Cookie", setCookieHeaderValue);
+        Cookie sessionCookie = new Cookie("session", sessionToken);
+        sessionCookie.setPath("/");
+        sessionCookie.setHttpOnly(true);
+        response.addCookie(sessionCookie);
 
         // Redirect to the cart page, with the session-cookie-setting headers.
-        return ResponseEntity.status(HttpStatus.FOUND).headers(headers).location(URI.create("/cart")).build();
+        return new ModelAndView("redirect:/cart");
     }
 
     @PostMapping("/update-cart-count")
-    public String updateMap(@RequestParam Map<String, String> values,
+    public ModelAndView updateMap(@RequestParam Map<String, String> values,
                             @CookieValue(value = "session", defaultValue = "") String sessionToken,
-                            Model model) {
+                            RedirectAttributes redirectAttributes) {
         ShoppingBasket cart = ShoppingBasket.getInstance(sessions.get(sessionToken));
         // Iterate over the values map and update the corresponding entries in myMap
         for (String key : values.keySet()) {
@@ -67,14 +72,12 @@ public class ShoppingController {
             try {
                 cart.updateItemCount(key, value);
             } catch (IllegalArgumentException e) {
-                model.addAttribute("e", e);
-                return "invalid";
+                redirectAttributes.addFlashAttribute("e", e);
+                return new ModelAndView("redirect:/invalid");
             }
         }
-//        // Add the updated myMap to the model and return the view
-        model.addAttribute("items", cart.getItems());
 
-        return "cart";
+        return new ModelAndView("redirect:/cart");
     }
 
     @PostMapping("/insert-new-item")
@@ -99,82 +102,139 @@ public class ShoppingController {
         return new ModelAndView("redirect:/cart");
     }
 
-
-    @GetMapping("/cart")
-    public String cart(@CookieValue(value = "session", defaultValue = "") String sessionToken, Model model) {
+    @PostMapping("/delete_item")
+    public ModelAndView deleteItem(
+            @CookieValue (value = "session", defaultValue = "") String sessionToken,
+            @RequestParam Map<String, String> values
+    )
+    {
         if (!sessions.containsKey(sessionToken)) {
-            return "unauthorized";
+            return new ModelAndView("redirect:/unauthorized");
         }
 
         ShoppingBasket shoppingBasket = ShoppingBasket.getInstance(sessions.get(sessionToken));
 
-        model.addAttribute("items", shoppingBasket.getItems());
-
-        return "cart";
+        for (String key : values.keySet()) {
+            if (Objects.equals(values.get(key), "false")) {
+                shoppingBasket.deleteExistingItem(key);
+            }
+        }
+        return new ModelAndView("redirect:/cart");
     }
 
-    @GetMapping("/counter")
-    public ResponseEntity<String> counter() {
-        counter.incrementAndGet();
-        return ResponseEntity.status(HttpStatus.OK).body("[" + counter + "]");
+    @PostMapping("/update_items")
+    public ModelAndView updateItems(
+            @CookieValue (value = "session", defaultValue = "") String sessionToken,
+            @RequestParam Map<String, String> values
+    )
+    {
+        if (!sessions.containsKey(sessionToken)) {
+            return new ModelAndView("redirect:/unauthorized");
+        }
+
+        ShoppingBasket shoppingBasket = ShoppingBasket.getInstance(sessions.get(sessionToken));
+
+        Map<String, String> updatedNameMap = new HashMap<>();
+        for (String inputName : values.keySet()) {
+            if (inputName.endsWith("_cost")) {
+//                Deal with cost changing
+                String item = inputName.split("_")[0];
+//                Need to have most up to date name because name could change
+                String upToDateName = updatedNameMap.get(item);
+                Double cost = Double.valueOf(values.get(inputName));
+                shoppingBasket.updateCost(upToDateName, cost);
+
+            } else {
+//                Deal with name changing
+                String newName = values.get(inputName);
+                updatedNameMap.put(inputName, newName);
+                shoppingBasket.updateName(inputName, newName);
+            }
+
+        }
+        return new ModelAndView("redirect:/cart");
     }
 
-//    @GetMapping("/cost")
-//    public ResponseEntity<String> cost() {
-//        return ResponseEntity.status(HttpStatus.OK).body(
-//                shoppingBasket.getValue() == null ? "0" : shoppingBasket.getValue().toString()
-//        );
-//    }
 
-    @GetMapping("/greeting")
-    public String greeting(
-            @RequestParam(name = "name", required = false, defaultValue = "World") String name,
-            Model model
-    ) {
-        model.addAttribute("name", name);
-        return "greeting";
+    @GetMapping("/cart")
+    public ModelAndView cart(@CookieValue(value = "session", defaultValue = "") String sessionToken) {
+        if (!sessions.containsKey(sessionToken)) {
+            return new ModelAndView("redirect:/unauthorized");
+        }
+
+        ShoppingBasket shoppingBasket = ShoppingBasket.getInstance(sessions.get(sessionToken));
+
+        ModelAndView mav = new ModelAndView("cart");
+        mav.addObject("items", shoppingBasket.getItems());
+
+        return mav;
     }
 
     @GetMapping("/")
-    public String accessSite(
-            @CookieValue(value = "session", defaultValue = "") String sessionToken,
-            @RequestParam(name = "name", required = false, defaultValue = "World") String name,
-            Model model
+    public ModelAndView accessSite(
+            @CookieValue(value = "session", defaultValue = "") String sessionToken
     ) {
         if (!sessions.containsKey(sessionToken)) {
-            return "login";
+            return new ModelAndView("login");
         }
-        return cart(sessionToken, model);
+        return new ModelAndView("redirect:/cart");
     }
 
     @GetMapping("/logout")
-    public String logout(
+    public ModelAndView logout(
             @CookieValue(value = "session", defaultValue = "") String sessionToken
     ) {
         sessions.remove(sessionToken);
-        return "login";
+        return new ModelAndView("redirect:/");
     }
 
     @GetMapping("/newname")
-    public String newName(
+    public ModelAndView newName(
             @CookieValue(value = "session", defaultValue = "") String sessionToken) {
         if (!sessions.containsKey(sessionToken)) {
-            return "unauthorized";
+            return new ModelAndView("redirect:/unauthorized");
         }
-        return "newname";
+        return new ModelAndView("newname");
+    }
+
+    @GetMapping("/delname")
+    public ModelAndView delName(
+            @CookieValue(value = "session", defaultValue = "") String sessionToken
+    )
+    {
+        if (!sessions.containsKey(sessionToken)) {
+            return new ModelAndView("redirect:/unauthorized");
+        }
+
+        ModelAndView mav = new ModelAndView("delname");
+        mav.addObject("items", ShoppingBasket.getInstance(sessions.get(sessionToken)).getItemsAndValues());
+        return mav;
+    }
+
+    @GetMapping("/updatename")
+    public ModelAndView updateName(
+            @CookieValue(value = "session", defaultValue = "") String sessionToken
+    )
+    {
+        if (!sessions.containsKey(sessionToken)) {
+            return new ModelAndView("redirect:/unauthorized");
+        }
+        ModelAndView mav = new ModelAndView("updatename");
+        mav.addObject("items", ShoppingBasket.getInstance(sessions.get(sessionToken)).getItemsAndValues());
+        return mav;
     }
 
 
     @GetMapping("/unauthorized")
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public String unauthorized() {
-        return "unauthorized";
+    public ModelAndView unauthorized() {
+        return new ModelAndView("unauthorized");
     }
 
     @GetMapping("/invalid")
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    public String invalid() {
-        return "invalid";
+    public ModelAndView invalid() {
+        return new ModelAndView("invalid");
     }
 
 }

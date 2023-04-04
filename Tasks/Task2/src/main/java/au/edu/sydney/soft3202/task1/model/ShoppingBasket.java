@@ -127,6 +127,11 @@ public class ShoppingBasket {
         this.items.put(item, 0);
     }
 
+    public void deleteExistingItem(String itemName) {
+        this.items.remove(itemName);
+        this.values.remove(itemName);
+    }
+
     /**
     * Gets the contents of the ShoppingBasket.
     *
@@ -144,6 +149,40 @@ public class ShoppingBasket {
         }
 
         return copyItems;
+    }
+
+    /**
+     * Gets the contents of the ShoppingBasket.
+     *
+     * @return A list of items and counts of each item in the basket. This list is a copy and any modifications will not modify the existing basket.
+     */
+    public List<Entry<String, Double>> getItemsAndValues() {
+        ArrayList<Entry<String, Double>> originalItems = new ArrayList<Entry<String, Double>>(this.values.entrySet());
+        ArrayList<Entry<String, Double>> copyItems = new ArrayList<Entry<String, Double>>();
+
+        int index = 0;
+
+        for(Entry<String,Double> entry: originalItems){
+            copyItems.add(index, Map.entry(entry.getKey(), entry.getValue()));
+            index++;
+        }
+
+        return copyItems;
+    }
+
+    public void updateName(String oldName, String newName) {
+        Integer count = this.items.get(oldName);
+        Double cost = this.values.get(oldName);
+
+        this.items.remove(oldName);
+        this.values.remove(oldName);
+
+        this.items.put(newName, count);
+        this.values.put(newName, cost);
+    }
+
+    public void updateCost(String name, Double cost) {
+        this.values.replace(name, cost);
     }
 
     /**

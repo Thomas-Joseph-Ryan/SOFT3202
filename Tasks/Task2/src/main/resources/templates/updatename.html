@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <title>Add new Item</title>
+  <title>Delete Item</title>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <link rel="stylesheet" th:href="@{css/styles.css}">
 </head>
 <body>
 <a href="/cart"><button>Back to Cart</button></a>
-<form method="post" th:action="@{/insert-new-item}">
+<form method="post" th:action="@{/update_items}">
   <table>
     <thead>
     <tr>
@@ -16,17 +16,18 @@
     </tr>
     </thead>
     <tbody>
-    <tr>
+    <tr th:each="entry : ${items}">
+      <!--        First column should be the key-->
       <td>
-        <input type="text" name="new-name" placeholder="New name here">
+        <input type="text" th:name="${entry.key}" th:value="${entry.key}"/>
       </td>
       <td>
-        <input  type="text" name="new-cost" placeholder="New cost here">
+        <input type="text" th:name="${entry.key + '_cost'}" th:value="${entry.value}"/>
       </td>
     </tr>
     </tbody>
   </table>
-  <button type="submit">Insert new Item</button>
+  <button type="submit">Submit Updates</button>
 </form>
 </body>
 </html>
