@@ -34,12 +34,16 @@ public class ShoppingBasket {
         this.values.put("banana", 4.95);
     }
 
-    public static ShoppingBasket getInstance(String sessionToken) {
-        if (!instances.containsKey(sessionToken)) {
-            instances.put(sessionToken, new ShoppingBasket());
+    public static ShoppingBasket getInstance(String userID) {
+        if (!instances.containsKey(userID)) {
+            instances.put(userID, new ShoppingBasket());
         }
 
-        return instances.get(sessionToken);
+        return instances.get(userID);
+    }
+
+    public static void resetInstance() {
+        instances.clear();
     }
 
     /**

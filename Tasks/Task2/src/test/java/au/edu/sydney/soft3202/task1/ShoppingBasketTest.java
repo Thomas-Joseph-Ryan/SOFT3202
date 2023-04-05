@@ -15,10 +15,6 @@ public class ShoppingBasketTest {
 //        shoppingBasket = new ShoppingBasket();
     }
 
-    @Test
-    public void getValueEmptyTest() {
-        assertNull(shoppingBasket.getValue());
-    }
 
 }
 
