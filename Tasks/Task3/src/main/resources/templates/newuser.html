@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Add new Item</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <link rel="stylesheet" th:href="@{css/styles.css}">
+</head>
+<body>
+<a href="/cart"><button>Back to Cart</button></a>
+<form method="post" th:action="@{/insert-new-name}">
+  <input name="username" type="text" placeholder="New username here">
+  <button type="submit">Insert new user name</button>
+</form>
+</body>
+</html>
