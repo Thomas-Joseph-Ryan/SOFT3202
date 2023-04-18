@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 /**
  * Container for items to be purchased
@@ -13,6 +14,7 @@ public class ShoppingBasket {
 
     HashMap<String, Integer> items;
     HashMap<String, Double> values;
+
     String[] names = {"apple", "orange", "pear", "banana"};
 
     private static Map<String, ShoppingBasket> instances = new HashMap<>();
@@ -34,9 +36,27 @@ public class ShoppingBasket {
         this.values.put("banana", 4.95);
     }
 
+    private ShoppingBasket(List<Item> items) {
+        this.items = new HashMap<>();
+        this.values = new HashMap<>();
+
+        for (Item item : items) {
+            this.items.put(item.item(), item.count());
+            this.values.put(item.item(), item.cost());
+        }
+    }
+
     public static ShoppingBasket getInstance(String userID) {
+        return instances.get(userID);
+    }
+
+    public static ShoppingBasket getInstance(String userID, List<Item> itemsFromDatabase) {
         if (!instances.containsKey(userID)) {
-            instances.put(userID, new ShoppingBasket());
+            if (itemsFromDatabase.size() == 0) {
+                instances.put(userID, new ShoppingBasket());
+            } else {
+                instances.put(userID, new ShoppingBasket(itemsFromDatabase));
+            }
         }
 
         return instances.get(userID);
@@ -44,6 +64,18 @@ public class ShoppingBasket {
 
     public static void resetInstance() {
         instances.clear();
+    }
+
+    public List<Item> getItemsAsItemList() {
+        List<Item> itemList = new ArrayList<>();
+        for (Map.Entry<String, Integer> itemEntry : items.entrySet()) {
+            String itemName = itemEntry.getKey();
+            Integer count = itemEntry.getValue();
+            Double cost = values.get(itemName);
+            Item item = new Item(itemName, count, cost);
+            itemList.add(item);
+        }
+        return itemList;
     }
 
     /**
@@ -142,17 +174,19 @@ public class ShoppingBasket {
      * @return A list of items and counts of each item in the basket. This list is a copy and any modifications will not modify the existing basket.
      */
     public List<Entry<String, Integer>> getItems() {
-        ArrayList<Entry<String, Integer>> originalItems = new ArrayList<Entry<String, Integer>>(this.items.entrySet());
-        ArrayList<Entry<String, Integer>> copyItems = new ArrayList<Entry<String, Integer>>();
+//        ArrayList<Entry<String, Integer>> originalItems = new ArrayList<Entry<String, Integer>>(this.items.entrySet());
+//        ArrayList<Entry<String, Integer>> copyItems = new ArrayList<Entry<String, Integer>>();
+//
+//        int index = 0;
+//
+//        for(Entry<String,Integer> entry: originalItems){
+//            copyItems.add(index, Map.entry(entry.getKey(), entry.getValue()));
+//            index++;
+//        }
 
-        int index = 0;
-
-        for(Entry<String,Integer> entry: originalItems){
-            copyItems.add(index, Map.entry(entry.getKey(), entry.getValue()));
-            index++;
-        }
-
-        return copyItems;
+        return this.items.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .collect(Collectors.toList());
     }
 
     /**

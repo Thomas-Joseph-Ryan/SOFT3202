@@ -1,6 +1,7 @@
 package au.edu.sydney.soft3202.task1.controllers;
 
 import au.edu.sydney.soft3202.task1.DatabaseHelper;
+import au.edu.sydney.soft3202.task1.model.Item;
 import au.edu.sydney.soft3202.task1.model.ShoppingBasket;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.sound.midi.SysexMessage;
 import java.net.URI;
 import java.security.SecureRandom;
 import java.sql.SQLException;
@@ -76,17 +78,23 @@ public class ShoppingController {
     public ModelAndView updateMap(@RequestParam Map<String, String> values,
                                   @CookieValue(value = "session", defaultValue = "") String sessionToken,
                                   RedirectAttributes redirectAttributes) {
-        ShoppingBasket cart = ShoppingBasket.getInstance(sessions.get(sessionToken));
+        String user = sessions.get(sessionToken);
+        ShoppingBasket cart = ShoppingBasket.getInstance(user);
         // Iterate over the values map and update the corresponding entries in myMap
         for (String key : values.keySet()) {
             Integer value = Integer.valueOf(values.get(key));
             try {
                 cart.updateItemCount(key, value);
+                dbHelper.updateCartItemCount(key, value, user);
             } catch (IllegalArgumentException e) {
                 redirectAttributes.addFlashAttribute("e", e);
                 return new ModelAndView("redirect:/invalid");
+            } catch (SQLException e) {
+                redirectAttributes.addFlashAttribute("e", "Error while updating cart counts: " + e.getMessage() + ".\n");
+                return new ModelAndView("redirect:/invalid");
             }
         }
+
 
         return new ModelAndView("redirect:/cart");
     }
@@ -230,7 +238,25 @@ public class ShoppingController {
             return new ModelAndView("redirect:/users");
         }
 
-        ShoppingBasket shoppingBasket = ShoppingBasket.getInstance(sessions.get(sessionToken));
+        List<Item> items;
+        try {
+            items = dbHelper.getUserCart(user);
+        } catch (SQLException e) {
+            redirectAttributes.addFlashAttribute("e", "Problem when getting user cart: " + e.getMessage() + ".\n");
+            return new ModelAndView("redirect:/invalid");
+        }
+
+        ShoppingBasket shoppingBasket = ShoppingBasket.getInstance(sessions.get(sessionToken), items);
+        if (items.size() == 0) {
+            for (Item item : shoppingBasket.getItemsAsItemList()) {
+                try {
+                    dbHelper.addItem(user, item);
+                } catch (SQLException e) {
+                    redirectAttributes.addFlashAttribute("e", "Problem when adding default items to user cart: " + e.getMessage() + ".\n");
+                    return new ModelAndView("redirect:/invalid");
+                }
+            }
+        }
 
         ModelAndView mav = new ModelAndView("cart");
         mav.addObject("items", shoppingBasket.getItems());

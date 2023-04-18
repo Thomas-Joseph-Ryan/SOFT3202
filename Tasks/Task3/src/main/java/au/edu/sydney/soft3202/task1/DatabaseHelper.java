@@ -1,4 +1,6 @@
 package au.edu.sydney.soft3202.task1;
+import au.edu.sydney.soft3202.task1.model.Item;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -19,6 +21,65 @@ public class DatabaseHelper {
       "CREATE TABLE IF NOT EXISTS users (user TEXT PRIMARY KEY NOT NULL)";
     try (Statement statement = connection.createStatement()) {
       statement.execute(sql);
+    }
+  }
+
+  public void ensureShoppingBasketTable() throws SQLException {
+    String sql =
+            "CREATE TABLE IF NOT EXISTS shoppingcart " +
+                    "(user TEXT REFERENCES users(user)," +
+                    "item TEXT," +
+                    "count INTEGER," +
+                    "cost DOUBLE," +
+                    "PRIMARY KEY (user, item))";
+    try (Statement statement = connection.createStatement()) {
+      statement.execute(sql);
+    }
+  }
+
+  public List<Item> getUserCart(String name) throws SQLException {
+    String sql =
+            "SELECT item, count, cost " +
+                    "FROM shoppingcart " +
+                    "WHERE user = ?";
+    PreparedStatement preparedStatement = connection.prepareStatement(sql);
+    preparedStatement.setString(1, name);
+    ResultSet resultSet = preparedStatement.executeQuery();
+
+    List<Item> items = new ArrayList<>();
+    while (resultSet.next()) {
+      String itemName = resultSet.getString("item");
+      Integer count = resultSet.getInt("count");
+      Double cost = resultSet.getDouble("cost");
+      Item item = new Item(itemName, count, cost);
+      items.add(item);
+    }
+    return items;
+  }
+
+  public void updateCartItemCount(String itemName, Integer count, String user) throws SQLException{
+    String sql =
+            "UPDATE shoppingcart " +
+            "SET count = ? " +
+            "WHERE item = ? AND user = ?";
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      preparedStatement.setInt(1, count);
+      preparedStatement.setString(2, itemName);
+      preparedStatement.setString(3, user);
+      preparedStatement.executeUpdate();
+    }
+  }
+
+  public void addItem(String user, Item item) throws SQLException{
+    String sql =
+            "INSERT INTO shoppingcart (user, item, count, cost) " +
+                    "VALUES (?, ?, ?, ?)";
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      preparedStatement.setString(1, user);
+      preparedStatement.setString(2, item.item());
+      preparedStatement.setInt(3, item.count());
+      preparedStatement.setDouble(4, item.cost());
+      preparedStatement.execute();
     }
   }
 
@@ -88,6 +149,7 @@ public class DatabaseHelper {
   public DatabaseHelper() throws SQLException {
     connect();
     ensureUsersTable();
+    ensureShoppingBasketTable();
   }
 
 }
