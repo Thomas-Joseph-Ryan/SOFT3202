@@ -110,9 +110,16 @@ public class ShoppingController {
             return new ModelAndView("redirect:/unauthorized");
         }
 
-        ShoppingBasket shoppingBasket = ShoppingBasket.getInstance(sessions.get(sessionToken));
+        String user = sessions.get(sessionToken);
+        ShoppingBasket shoppingBasket = ShoppingBasket.getInstance(user);
         try {
             shoppingBasket.insertNewItem(newName, Double.valueOf(newCount));
+            try {
+                dbHelper.insertNewItemIntoCart(newName, user, Double.valueOf(newCount));
+            } catch (SQLException e){
+                redirectAttributes.addFlashAttribute("e", "Error while inserting new item into cart: " + e.getMessage() + ".\n");
+                return new ModelAndView("redirect:/invalid");
+            }
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("e", e);
             return new ModelAndView("redirect:/invalid");
@@ -124,17 +131,26 @@ public class ShoppingController {
     @PostMapping("/delete_item")
     public ModelAndView deleteItem(
             @CookieValue(value = "session", defaultValue = "") String sessionToken,
-            @RequestParam Map<String, String> values
+            @RequestParam Map<String, String> values,
+            RedirectAttributes redirectAttributes
     ) {
         if (!sessions.containsKey(sessionToken)) {
             return new ModelAndView("redirect:/unauthorized");
         }
 
-        ShoppingBasket shoppingBasket = ShoppingBasket.getInstance(sessions.get(sessionToken));
+        String user = sessions.get(sessionToken);
+
+        ShoppingBasket shoppingBasket = ShoppingBasket.getInstance(user);
 
         for (String key : values.keySet()) {
             if (Objects.equals(values.get(key), "false")) {
                 shoppingBasket.deleteExistingItem(key);
+                try {
+                    dbHelper.deleteCartItem(key, user);
+                } catch (SQLException e) {
+                    redirectAttributes.addFlashAttribute("e", "Error while deleting item from cart: " + e.getMessage() + ".\n");
+                    return new ModelAndView("redirect:/invalid");
+                }
             }
         }
         return new ModelAndView("redirect:/cart");
@@ -143,13 +159,16 @@ public class ShoppingController {
     @PostMapping("/update_items")
     public ModelAndView updateItems(
             @CookieValue(value = "session", defaultValue = "") String sessionToken,
-            @RequestParam Map<String, String> values
+            @RequestParam Map<String, String> values,
+            RedirectAttributes redirectAttributes
     ) {
         if (!sessions.containsKey(sessionToken)) {
             return new ModelAndView("redirect:/unauthorized");
         }
 
-        ShoppingBasket shoppingBasket = ShoppingBasket.getInstance(sessions.get(sessionToken));
+        String user = sessions.get(sessionToken);
+
+        ShoppingBasket shoppingBasket = ShoppingBasket.getInstance(user);
 
         Map<String, String> updatedNameMap = new HashMap<>();
         for (String inputName : values.keySet()) {
@@ -160,12 +179,23 @@ public class ShoppingController {
                 String upToDateName = updatedNameMap.get(item);
                 Double cost = Double.valueOf(values.get(inputName));
                 shoppingBasket.updateCost(upToDateName, cost);
-
+                try{
+                    dbHelper.updateCartItemCost(upToDateName, cost, user);
+                } catch (SQLException e) {
+                    redirectAttributes.addFlashAttribute("e", "Problem when updating item cost: " + e.getMessage() + ".\n");
+                    return new ModelAndView("redirect:/invalid");
+                }
             } else {
 //                Deal with name changing
                 String newName = values.get(inputName);
                 updatedNameMap.put(inputName, newName);
                 shoppingBasket.updateName(inputName, newName);
+                try {
+                    dbHelper.updateCartItemName(inputName, newName, user);
+                } catch (SQLException e) {
+                    redirectAttributes.addFlashAttribute("e", "Problem when updating item name: " + e.getMessage() + ".\n");
+                    return new ModelAndView("redirect:/invalid");
+                }
             }
 
         }
@@ -216,6 +246,9 @@ public class ShoppingController {
         if (usersToDelete != null) {
             try {
                 dbHelper.deleteUserList(usersToDelete);
+                for (String user : usersToDelete) {
+                    ShoppingBasket.removeInstance(user);
+                }
             } catch (SQLException e) {
                 redirectAttributes.addFlashAttribute("e", "Problem when deleting user: " + e.getMessage() + ".\n");
                 return new ModelAndView("redirect:/invalid");

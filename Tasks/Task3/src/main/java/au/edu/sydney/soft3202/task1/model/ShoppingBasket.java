@@ -50,6 +50,10 @@ public class ShoppingBasket {
         return instances.get(userID);
     }
 
+    public static void removeInstance(String userID) {
+        instances.remove(userID);
+    }
+
     public static ShoppingBasket getInstance(String userID, List<Item> itemsFromDatabase) {
         if (!instances.containsKey(userID)) {
             if (itemsFromDatabase.size() == 0) {
@@ -89,7 +93,7 @@ public class ShoppingBasket {
      */
     public void addItem(String item, int count) throws IllegalArgumentException {
         if (item == null) throw new IllegalArgumentException("Item is invalid");
-        String stringItem = item.toLowerCase();
+        String stringItem = item;
 
         if (!this.items.containsKey(stringItem)) throw new IllegalArgumentException("Item " + stringItem + " is not present.");
         if (count < 1) throw new IllegalArgumentException("Item " + item + " has invalid count.");
@@ -110,7 +114,7 @@ public class ShoppingBasket {
      */
     public boolean removeItem(String item, int count) throws IllegalArgumentException {
         if (item == null) throw new IllegalArgumentException("Item is invalid");
-        String stringItem = item.toLowerCase();
+        String stringItem = item;
 
         if (!this.items.containsKey(stringItem)) return false;
         if (count < 1) throw new IllegalArgumentException(count + " is invalid count.");
@@ -134,7 +138,7 @@ public class ShoppingBasket {
 //        if (item == null) throw new IllegalArgumentException("Item is invalid"); redundant because
 //        string will only ever be provided through fixed input
 
-        String stringItem = item.toLowerCase();
+        String stringItem = item;
 
         if (!this.items.containsKey(stringItem)) {
             return;
@@ -152,7 +156,7 @@ public class ShoppingBasket {
      * @param cost New item cost
      */
     public void insertNewItem(String item, Double cost) {
-        if (this.items.containsKey(item.toLowerCase())) {
+        if (this.items.containsKey(item)) {
             return;
         }
         if (cost < 0) {
