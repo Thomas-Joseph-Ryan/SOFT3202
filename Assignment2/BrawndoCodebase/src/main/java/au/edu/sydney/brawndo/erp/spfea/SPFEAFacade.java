@@ -223,7 +223,6 @@ public class SPFEAFacade {
         Order order = TestDatabase.getInstance().getOrder(token, orderID);
 
         if (null == order) {
-            System.out.println("got here");
             return;
         }
 

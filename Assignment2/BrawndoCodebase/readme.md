@@ -12,7 +12,7 @@ To fix the RAM issue I will be employing the FlyWeight pattern.
 - FlyweightFactory: ProductFlyWeightFactory
 - Client: ProductImpl
 
-##### Explaination (I didn't realise we only had to justify if we do an alternate solution.. But I've written it now so ill keep it in along with any other explanations I've done so far.)
+##### Explanation (I didn't realise we only had to justify if we do an alternate solution.. But I've written it now so ill keep it in along with any other explanations I've done so far.)
 
 In order to maintain the interface for the ProductImpl object, I made the FlyWeightFactory
 a singleton, so that the ProductImpl object can get the instance of the FlyWeightFactory without needing
@@ -65,9 +65,12 @@ design pattern
 
 ### System Lag
 
-Create a software sublayer that is accessed instead of the database, so when we initially load the application, we
-should load from the database, but when we do that we should create a copy of the customers (or at least part of, maybe like a
-lazy loading thing) that gets accessed instead of the actual database.
+#### Lazy Loading
+
+To reduce the system lag when loading a customer, I used the lazy loading design pattern. Specifically the Lazy Initialization
+variant.
+
+- Class: CustomerImpl
 
 ### Hard to Compare Products
 
@@ -77,6 +80,7 @@ In order make products easier to compare, I completed the Value Object pattern t
 already being partially used on the ProductImpl as there was only getter methods and no setters.
 
 - ValueObject: ProductImpl
+- Client: All non-subscription Order types
 
 When creating each product, a unique hashValue is generated. This hashValue effectively condenses the product's data into a compact, 
 easily comparable form. The primary advantage of this hashValue is that it provides a quick, 
