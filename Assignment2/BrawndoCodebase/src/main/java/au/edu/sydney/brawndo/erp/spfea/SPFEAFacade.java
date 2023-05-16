@@ -61,6 +61,10 @@ public class SPFEAFacade {
 
         int id = TestDatabase.getInstance().getNextOrderID();
 
+//        Change this to a builder pattern using strategies to decide the behaviour.
+//        There should then only be 2 different types of order classes, subscription and
+//        one off.
+
         if (isSubscription) {
             if (1 == discountType) { // 1 is flat rate
                     if (isBusiness) {
