@@ -6,12 +6,12 @@ import au.edu.sydney.brawndo.erp.database.TestDatabase;
 import au.edu.sydney.brawndo.erp.ordering.Customer;
 import au.edu.sydney.brawndo.erp.ordering.Order;
 import au.edu.sydney.brawndo.erp.ordering.Product;
+import au.edu.sydney.brawndo.erp.spfea.contactCOR.*;
 import au.edu.sydney.brawndo.erp.spfea.ordering.*;
 import au.edu.sydney.brawndo.erp.spfea.products.ProductDatabase;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings("Duplicates")
@@ -129,55 +129,72 @@ public class SPFEAFacade {
         return new ArrayList<>(ProductDatabase.getTestProducts());
     }
 
+    ContactHandler baseHandler = new BaseHandler();
+    ContactHandler currentLowestPriorityHandler = baseHandler;
+
     public boolean finaliseOrder(int orderID, List<String> contactPriority) {
         if (null == token) {
             throw new SecurityException();
         }
 
-        List<ContactMethod> contactPriorityAsMethods = new ArrayList<>();
-
         if (null != contactPriority) {
             for (String method: contactPriority) {
                 switch (method.toLowerCase()) {
-                    case "merchandiser":
-                        contactPriorityAsMethods.add(ContactMethod.MERCHANDISER);
-                        break;
-                    case "email":
-                        contactPriorityAsMethods.add(ContactMethod.EMAIL);
-                        break;
-                    case "carrier pigeon":
-                        contactPriorityAsMethods.add(ContactMethod.CARRIER_PIGEON);
-                        break;
-                    case "mail":
-                        contactPriorityAsMethods.add(ContactMethod.MAIL);
-                        break;
-                    case "phone call":
-                        contactPriorityAsMethods.add(ContactMethod.PHONECALL);
-                        break;
-                    case "sms":
-                        contactPriorityAsMethods.add(ContactMethod.SMS);
-                        break;
-                    default:
-                        break;
+                    case "merchandiser" -> {
+                        ContactHandler handler = new HandleMerchandiser();
+                        currentLowestPriorityHandler.setNext(handler);
+                        currentLowestPriorityHandler = handler;
+                    }
+                    case "email" -> {
+                        ContactHandler handler = new HandleEmail();
+                        currentLowestPriorityHandler.setNext(handler);
+                        currentLowestPriorityHandler = handler;
+                    }
+                    case "carrier pigeon" -> {
+                        ContactHandler handler = new HandleCarrierPigeon();
+                        currentLowestPriorityHandler.setNext(handler);
+                        currentLowestPriorityHandler = handler;
+                    }
+                    case "mail" -> {
+                        ContactHandler handler = new HandleMail();
+                        currentLowestPriorityHandler.setNext(handler);
+                        currentLowestPriorityHandler = handler;
+                    }
+                    case "phone call" -> {
+                        ContactHandler handler = new HandlePhoneCall();
+                        currentLowestPriorityHandler.setNext(handler);
+                        currentLowestPriorityHandler = handler;
+                    }
+                    case "sms" -> {
+                        ContactHandler handler = new HandleSMS();
+                        currentLowestPriorityHandler.setNext(handler);
+                        currentLowestPriorityHandler = handler;
+                    }
+                    default -> {
+                    }
                 }
             }
         }
 
-        if (contactPriorityAsMethods.size() == 0) { // needs setting to default
-            contactPriorityAsMethods = Arrays.asList(
-                    ContactMethod.MERCHANDISER,
-                    ContactMethod.EMAIL,
-                    ContactMethod.CARRIER_PIGEON,
-                    ContactMethod.MAIL,
-                    ContactMethod.PHONECALL
-            );
+        if (currentLowestPriorityHandler == baseHandler) { // needs setting to default
+            ContactHandler hMerch = new HandleMerchandiser();
+            ContactHandler hEmail = new HandleEmail();
+            ContactHandler hCP = new HandleCarrierPigeon();
+            ContactHandler hMail = new HandleMail();
+            ContactHandler hPhCall = new HandlePhoneCall();
+
+            baseHandler.setNext(hMerch);
+            hMerch.setNext(hEmail);
+            hEmail.setNext(hCP);
+            hCP.setNext(hMail);
+            hMail.setNext(hPhCall);
         }
 
         Order order = TestDatabase.getInstance().getOrder(token, orderID);
 
         order.finalise();
         TestDatabase.getInstance().saveOrder(token, order);
-        return ContactHandler.sendInvoice(token, getCustomer(order.getCustomer()), contactPriorityAsMethods, order.generateInvoiceData());
+        return baseHandler.handle(token, getCustomer(order.getCustomer()), order.generateInvoiceData());
     }
 
     public void logout() {

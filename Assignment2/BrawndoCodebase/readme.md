@@ -12,6 +12,8 @@ To fix the RAM issue I will be employing the FlyWeight pattern.
 - FlyweightFactory: ProductFlyWeightFactory
 - Client: ProductImpl
 
+##### Explaination (I didn't realise we only had to justify if we do an alternate solution.. But I've written it now so ill keep it in along with any other explanations I've done so far.)
+
 In order to maintain the interface for the ProductImpl object, I made the FlyWeightFactory
 a singleton, so that the ProductImpl object can get the instance of the FlyWeightFactory without needing
 to pass the factory object to the product through a setter or the constructor. 
@@ -51,7 +53,15 @@ How did you solution solve the problem, be brief.
 
 ### Bulky Contact Method
 
-Change this to a chain of responsibility design pattern, such that if it is not ones responsibility it passes it to the next.
+#### Chain of Responsibility
+
+In order to slim down the method used for contacting the customer, I applied the Chain of Responsibility
+design pattern
+
+- Handler: ContactHandler
+- BaseHandler: BaseHandler
+- ConcreteHandler: HandleCarrierPigeon, HandleEmail, HandleMerchandiser, HandlePhoneCall, HandleSMS, HandleMail
+- Client: SPFEAFacade
 
 ### System Lag
 
@@ -60,6 +70,8 @@ should load from the database, but when we do that we should create a copy of th
 lazy loading thing) that gets accessed instead of the actual database.
 
 ### Hard to Compare Products
+
+#### Value Object
 
 In order make products easier to compare, I completed the Value Object pattern that was
 already being partially used on the ProductImpl as there was only getter methods and no setters.
