@@ -6,19 +6,22 @@
 
 #### FlyWeight Pattern
 
-I will be implementing fly weight pattern to fix this issue. Need to wait for 
-tests to be fixed so I can see what are the intrinsic vs extrinsic variables
-inside each product. Currently im thinking all of the variables are instrinsic
-because they dont seem to be modified from anywhere, however testing will
-help me to figure that out.
+To fix the RAM issue I will be employing the FlyWeight pattern. 
 
-The idea here is I will have the productImpl constructor ask the fly weight 
-factory if there is an flyWeightItem with the same x variables, if so then return that 
-object, otherwise, create a new flyWeightItem with those x variables
+- ConcreteFlyweight: ProductFlyWeight
+- FlyweightFactory: ProductFlyWeightFactory
+- Client: ProductImpl
 
-- participant name (as defined in the lectures): correlated java class
-- participant name (as defined in the lectures): correlated java class
-- participant name (as defined in the lectures): correlated java class
+In order to maintain the interface for the ProductImpl object, I made the FlyWeightFactory
+a singleton, so that the ProductImpl object can get the instance of the FlyWeightFactory without needing
+to pass the factory object to the product through a setter or the constructor. 
+
+I have identified the recipeData, marketingData, safetyData and licensingData to be the intrinsic
+data that is saved in the shared object and name, cost and manufacturingData to be extrinsic. Although
+since the ProductImpl object seems to be a value object it could be debated that all the data in the 
+ProductImpl could be included in the FlyWeight and considered intrinsic as it cannot be modified
+externally. But without the domain knowledge to be completely sure, I will limit the FlyWeight to 
+just the 4 attributes.
 
 ### Too Many Orders
 
@@ -58,7 +61,34 @@ lazy loading thing) that gets accessed instead of the actual database.
 
 ### Hard to Compare Products
 
-Create a hash for a product, and then when comparing products, compare their hashs.
+In order make products easier to compare, I completed the Value Object pattern that was
+already being partially used on the ProductImpl as there was only getter methods and no setters.
+
+- ValueObject: ProductImpl
+
+When creating each product, a unique hashValue is generated. This hashValue effectively condenses the product's data into a compact, 
+easily comparable form. The primary advantage of this hashValue is that it provides a quick, 
+preliminary check for product equality, reducing the need for exhaustive and computationally 
+expensive attribute-by-attribute comparisons.
+
+In the overridden `equals()` method, the first step is to compare the hashValues of two products. 
+If these hashValues are identical, it strongly suggests that the two products are likely to be 
+the same. This is where the hashValue proves its worth – it enables a fast, initial equality 
+check, saving time and computational resources.
+
+However, hash functions, despite their usefulness, are not perfect and can lead to collisions 
+(i.e., distinct products might end up with the same hashValue). Therefore, if two products have
+the same hashValue, we conduct a secondary, more granular comparison. This involves checking 
+each individual attribute of the products to confirm that they are indeed identical.
+
+In this way, the hashValue serves as an efficient screening tool for equality, accelerating
+the comparison process by reducing the need for full attribute comparisons. Yet, to ensure 
+absolute accuracy in the face of potential hash collisions, we retain the thorough 
+attribute-by-attribute comparison as a secondary, confirmatory step. This two-tiered process 
+balances efficiency and precision in product comparison.
+
+When overriding the `equals()` method it is imperative to also override the `hashcode()` method
+to ensure correctness for datastructures like hashmaps which I have also done.
 
 ### Slow Order Creation
 
