@@ -8,6 +8,15 @@ import au.edu.sydney.brawndo.erp.ordering.Order;
 import au.edu.sydney.brawndo.erp.ordering.Product;
 import au.edu.sydney.brawndo.erp.spfea.contactCOR.*;
 import au.edu.sydney.brawndo.erp.spfea.ordering.*;
+import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.Discounts.BulkDiscount;
+import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.Discounts.FlatRateDiscount;
+import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.Discounts.PricingStrategy;
+import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.InvoiceType.OneOffInvoice.OneOffInvoiceStrategy;
+import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.InvoiceType.OneOffInvoice.OneOffBusinessOneOffInvoice;
+import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.InvoiceType.OneOffInvoice.OneOffPersonalCustomerOneOffInvoice;
+import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.InvoiceType.SubscriptionInvoice.SubscriptionBusinessInvoice;
+import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.InvoiceType.SubscriptionInvoice.SubscriptionInvoiceStrategy;
+import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.InvoiceType.SubscriptionInvoice.SubscriptionPersonalInvoice;
 import au.edu.sydney.brawndo.erp.spfea.products.ProductDatabase;
 
 import java.time.LocalDateTime;
@@ -61,38 +70,41 @@ public class SPFEAFacade {
 
         int id = TestDatabase.getInstance().getNextOrderID();
 
-//        Change this to a builder pattern using strategies to decide the behaviour.
-//        There should then only be 2 different types of order classes, subscription and
-//        one off.
+//        Ideally, you would have the order be created first, then we could use setters to
+//        set the strategies used, however since the order interface cannot be changed, we
+//        must set the strategies through the constructor
 
-        if (isSubscription) {
-            if (1 == discountType) { // 1 is flat rate
-                    if (isBusiness) {
-                         order = new NewOrderImplSubscription(id, date, customerID, discountRate, numShipments);
-                    } else {
-                        order = new Order66Subscription(id, date, discountRate, customerID, numShipments);
-                    }
-                } else if (2 == discountType) { // 2 is bulk discount
-                    if (isBusiness) {
-                        order = new BusinessBulkDiscountSubscription(id, customerID, date, discountThreshold, discountRate, numShipments);
-                    } else {
-                        order = new FirstOrderSubscription(id, date, discountRate, discountThreshold, customerID, numShipments);
-                    }
-            } else {return null;}
+//        Decide on pricing strategy
+        PricingStrategy pricingStrategy;
+
+        if (discountType == 1) {
+            pricingStrategy = new FlatRateDiscount(discountRate);
+        } else if (discountType == 2) {
+            pricingStrategy = new BulkDiscount(discountThreshold, discountRate);
         } else {
-            if (1 == discountType) {
-                if (isBusiness) {
-                    order = new NewOrderImpl(id, date, customerID, discountRate);
-                } else {
-                    order = new Order66(id, date, discountRate, customerID);
-                }
-            } else if (2 == discountType) {
-                if (isBusiness) {
-                    order = new BusinessBulkDiscountOrder(id, customerID, date, discountThreshold, discountRate);
-                } else {
-                    order = new FirstOrder(id, date, discountRate, discountThreshold, customerID);
-                }
-            } else {return null;}
+            return null;
+        }
+
+//        Decide on invoicing strategy and order type
+        if (isSubscription) {
+            SubscriptionInvoiceStrategy subscriptionInvoiceStrategy;
+            if (isBusiness) {
+                subscriptionInvoiceStrategy = new SubscriptionBusinessInvoice();
+            } else {
+                subscriptionInvoiceStrategy = new SubscriptionPersonalInvoice();
+            }
+
+            order = new OrderSubscription(id, date, customerID, numShipments, pricingStrategy, subscriptionInvoiceStrategy);
+
+        } else {
+            OneOffInvoiceStrategy oneOffInvoiceStrategy;
+            if (isBusiness) {
+                oneOffInvoiceStrategy = new OneOffBusinessOneOffInvoice();
+            } else {
+                oneOffInvoiceStrategy = new OneOffPersonalCustomerOneOffInvoice();
+            }
+
+            order = new OneOffOrder(id, date, customerID, pricingStrategy, oneOffInvoiceStrategy);
         }
 
         TestDatabase.getInstance().saveOrder(token, order);

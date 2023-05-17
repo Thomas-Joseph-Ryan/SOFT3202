@@ -3,6 +3,9 @@ package au.edu.sydney.brawndo.erp.spfea.ordering;
 import au.edu.sydney.brawndo.erp.ordering.Order;
 import au.edu.sydney.brawndo.erp.ordering.Product;
 import au.edu.sydney.brawndo.erp.ordering.SubscriptionOrder;
+import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.Discounts.PricingStrategy;
+import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.InvoiceType.SubscriptionInvoice.SubscriptionInvoiceData;
+import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.InvoiceType.SubscriptionInvoice.SubscriptionInvoiceStrategy;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -12,12 +15,16 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("Duplicates")
-public class NewOrderImplSubscription extends NewOrderImpl implements SubscriptionOrder {
-    private int numShipments;
+public class OrderSubscription extends OneOffOrder implements SubscriptionOrder {
 
-    public NewOrderImplSubscription(int id, LocalDateTime date, int customerID, double discountRate, int numShipments) {
-        super(id, date, customerID, discountRate);
+    private int numShipments;
+    private SubscriptionInvoiceStrategy subscriptionInvoiceStrategy;
+
+
+    public OrderSubscription(int id, LocalDateTime date, int customerID, int numShipments, PricingStrategy pricingStrategy, SubscriptionInvoiceStrategy subscriptionInvoiceStrategy) {
+        super(id, date, customerID, pricingStrategy);
         this.numShipments = numShipments;
+        this.subscriptionInvoiceStrategy = subscriptionInvoiceStrategy;
     }
 
     @Override
@@ -37,15 +44,15 @@ public class NewOrderImplSubscription extends NewOrderImpl implements Subscripti
 
     @Override
     public String generateInvoiceData() {
-        return String.format("Your business account will be charged: $%,.2f each week, with a total overall cost of: $%,.2f" +
-                "\nPlease see your Brawndo© merchandising representative for itemised details.", getRecurringCost(), getTotalCost());
+        SubscriptionInvoiceData subscriptionInvoiceData = new SubscriptionInvoiceData(this.getTotalCost(), this.getRecurringCost(), this.getProducts());
+        return subscriptionInvoiceStrategy.generateInvoiceData(subscriptionInvoiceData);
     }
 
     @Override
     public Order copy() {
         Map<Product, Integer> products = super.getProducts();
 
-        Order copy = new NewOrderImplSubscription(getOrderID(), getOrderDate(), getCustomer(), getDiscountRate(), numShipments);
+        Order copy = new OrderSubscription(getOrderID(), getOrderDate(), getCustomer(), numShipments, pricingStrategy, subscriptionInvoiceStrategy);
         for (Product product: products.keySet()) {
             copy.setProduct(product, products.get(product));
         }
@@ -94,7 +101,6 @@ public class NewOrderImplSubscription extends NewOrderImpl implements Subscripti
                 fullCost - discountedCost,
                 discountedCost,
                 getTotalCost()
-
         );
     }
 }

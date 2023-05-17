@@ -2,6 +2,10 @@ package au.edu.sydney.brawndo.erp.spfea.ordering;
 
 import au.edu.sydney.brawndo.erp.ordering.Order;
 import au.edu.sydney.brawndo.erp.ordering.Product;
+import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.Discounts.CostData;
+import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.Discounts.PricingStrategy;
+import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.InvoiceType.OneOffInvoice.OneOffInvoiceData;
+import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.InvoiceType.OneOffInvoice.OneOffInvoiceStrategy;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -13,15 +17,25 @@ public class OneOffOrder implements Order {
     private Map<Product, Integer> products = new HashMap<>();
     private int id;
     private LocalDateTime date;
-    private double discountRate;
     private int customerID;
     private boolean finalised = false;
+    protected final PricingStrategy pricingStrategy;
+    private final OneOffInvoiceStrategy oneOffInvoiceStrategy;
 
-    public OneOffOrder(int id, LocalDateTime date, double discountRate, int customerID) {
+    public OneOffOrder(int id, LocalDateTime date, int customerID, PricingStrategy pricingStrategy, OneOffInvoiceStrategy oneOffInvoiceStrategy) {
         this.id = id;
         this.date = date;
-        this.discountRate = discountRate;
         this.customerID = customerID;
+        this.pricingStrategy = pricingStrategy;
+        this.oneOffInvoiceStrategy = oneOffInvoiceStrategy;
+    }
+
+    protected OneOffOrder(int id, LocalDateTime date, int customerID, PricingStrategy pricingStrategy) {
+        this.id = id;
+        this.date = date;
+        this.customerID = customerID;
+        this.pricingStrategy = pricingStrategy;
+        this.oneOffInvoiceStrategy = null;
     }
 
     @Override
@@ -74,7 +88,7 @@ public class OneOffOrder implements Order {
 
     @Override
     public Order copy() {
-        Order copy = new Order66(id, date, discountRate, customerID);
+        Order copy = new OneOffOrder(id, date, customerID, pricingStrategy, oneOffInvoiceStrategy);
         for (Product product: products.keySet()) {
             copy.setProduct(product, products.get(product));
         }
@@ -84,40 +98,14 @@ public class OneOffOrder implements Order {
 
     @Override
     public String generateInvoiceData() {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("Thank you for your Brawndo© order!\n");
-        sb.append("Your order comes to: $");
-        sb.append(String.format("%,.2f", getTotalCost()));
-        sb.append("\nPlease see below for details:\n");
-        List<Product> keyList = new ArrayList<>(products.keySet());
-        keyList.sort(Comparator.comparing(Product::getProductName).thenComparing(Product::getCost));
-
-        for (Product product: keyList) {
-            sb.append("\tProduct name: ");
-            sb.append(product.getProductName());
-            sb.append("\tQty: ");
-            sb.append(products.get(product));
-            sb.append("\tCost per unit: ");
-            sb.append(String.format("$%,.2f", product.getCost()));
-            sb.append("\tSubtotal: ");
-            sb.append(String.format("$%,.2f\n", product.getCost() * products.get(product)));
-        }
-
-        return sb.toString();
+        OneOffInvoiceData oneOffInvoiceData = new OneOffInvoiceData(this.getTotalCost(), this.products);
+        return oneOffInvoiceStrategy.generateInvoiceData(oneOffInvoiceData);
     }
 
     @Override
     public double getTotalCost() {
-        double cost = 0.0;
-        for (Product product: products.keySet()) {
-            cost +=  products.get(product) * product.getCost() * discountRate;
-        }
-        return cost;
-    }
-
-    protected double getDiscountRate() {
-        return this.discountRate;
+        CostData costData = new CostData(this.products);
+        return this.pricingStrategy.getTotalCost(costData);
     }
 
     protected Map<Product, Integer> getProducts() {
@@ -177,4 +165,5 @@ public class OneOffOrder implements Order {
     protected boolean isFinalised() {
         return finalised;
     }
+
 }

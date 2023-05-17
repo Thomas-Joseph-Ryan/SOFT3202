@@ -29,27 +29,46 @@ just the 4 attributes.
 
 #### Alternative Solution (400 words max)
 
-I think my alternative solution will consist of creating strategies for the different
-types of classes as there are only specific methods that rely on specific aspects of that
-order type.
+My general solution to this problem was to use the strategy pattern, however there are some idiosyncrasies to
+how this has been implemented, so I will consider it an alternative solution. The idea is to extract all the non
+duplicated codes from each class into separate strategies, such that there will only exist two base order classes,
+the OneOffOrder class and the OrderSubscription class. I did this by identifying the 2 methods that changed 
+dependent on what the specifics of the order are: the way total cost is calculated (discount type); the way
+invoices are generated (business or not and subscription or not). This means I have 3 main strategy types: Discounts,
+SubscriptionInvoiceTypes, OneOffInvoiceTypes. 
 
-For example, all orders will have the same type of invoice, the same way that each
-subscription will have the same type of invoice, so instead of having a different class
-for each type, we can just pass in the strategy for that behaviour.
-
-This would already reduce class load by half from 264 to 132. 
-
-Not sure if i can do the same thing for the flat vs bulk discount part but 
-if so, then could reduce total class load to 66 from 132, as low as it can go
-as long as each of those seperate order classes must exist.
+I employed the use of records to pass the necessary data to the appropriate strategy, which is why I needed to separate
+the different invoice types, as OneOffInvoiceTypes do not need to know about recurringCosts where has Subscription ones 
+do.
 
 ##### Solution Summary
 
-The solution summary goes here, you should describe what changes you have made to the codebase, be specific to the classes and methods you changed and how.
+The changes I have made are
+
+- Deleted existing order classes
+- Created generic order class for one-off orders all the methods that were common to one-off classes are maintained
+in this class, and then the getTotalCost() method has been changed to use the pricing strat and generateInvoice() method
+has been changed to use the OneOffInvoiceStrategy
+- Created generic order class for subscriptions that extends the one-off order class, this class behaves in the same
+way as the old class except it uses the SubscriptionInvoiceStrategy for its generateInvoice method(). Because this
+class extends the OneOffOrder class, I needed to create two constructors for the OneOffOrder class as the super() method
+in the constructor of the subscription class would not have been able to work with the public constructor of the OneOffOrder
+class.
+- Both of the classes copy() method have been changed to suit the new constructors.
+- Created different strategies which are inside the ordering/strategies directory.
+- Created a data structure for each type of strategy
+- Changed the SPFEAFacade createOrder() method to use these strategies.
 
 ##### Solution Benefit
 
-How did you solution solve the problem, be brief.
+The benefit of this solution is that it is more extendable, and cuts down the total number of classes involved in the
+order process from 264 to 78 (68 (pricing strategies + interface and costData) + 8 (invoice strategies + interfaces and data's) + 2
+(actual order classes)) if my understanding of the specs are correct. This is already a large reduction, however
+the better part of this solution is that it is more maintainable, and if there are more pricing strategies being added,
+the number of classes only increases by 1 instead of 4 as it did before.
+
+This method also makes the difference between each type of order clearer and you can specifically see the differences in
+each order type by looking at its strategies.
 
 ### Bulky Contact Method
 
