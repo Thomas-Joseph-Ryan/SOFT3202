@@ -2,6 +2,10 @@ package au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.Discounts;
 
 import au.edu.sydney.brawndo.erp.ordering.Product;
 
+/**
+ * Pricing strategy for flat discounts, for detailed description of what
+ * methods are doing, look at BulkDiscount class.
+ */
 public class FlatRateDiscount implements PricingStrategy {
 
     double discountRate;

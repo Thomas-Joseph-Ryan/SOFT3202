@@ -11,6 +11,13 @@ public class BaseHandler implements ContactHandler{
         this.next = next;
     }
 
+    /**
+     * Providing the base functionality for this method.
+     * @param token Authorisation token
+     * @param customer Customer being sent the invoice
+     * @param data Invoice data
+     * @return true if handled, false if not.
+     */
     @Override
     public Boolean handle(AuthToken token, Customer customer, String data) {
         if (next != null) {
