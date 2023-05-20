@@ -126,8 +126,11 @@ When overriding the `equals()` method it is imperative to also override the `has
 to ensure correctness for datastructures like hashmaps which I have also done.
 
 ### Slow Order Creation
+**THIS HAS NOT BEEN ATTEMPTED**
 
 Change this to an item of work type of system, where once all of the changes are made it will be submitted in a single go, rather
 then submitting things seperately
+
+
 
 ## Notes About the Submission
