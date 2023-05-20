@@ -1,2 +1,10 @@
-package org.example;public class Shape {
+package org.example;
+
+public abstract class Shape {
+    protected Renderer renderer;
+    public Shape(Renderer renderer) {
+        this.renderer = renderer;
+    }
+
+    public abstract void draw();
 }
