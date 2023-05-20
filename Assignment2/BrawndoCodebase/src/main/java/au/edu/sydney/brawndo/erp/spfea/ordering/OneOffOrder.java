@@ -11,7 +11,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-
+/**
+ * General Order class for one-off orders
+ */
 @SuppressWarnings("Duplicates")
 public class OneOffOrder implements Order {
     private Map<Product, Integer> products = new HashMap<>();
@@ -22,6 +24,14 @@ public class OneOffOrder implements Order {
     protected final PricingStrategy pricingStrategy;
     private final OneOffInvoiceStrategy oneOffInvoiceStrategy;
 
+    /**
+     * Constructor for one off oder
+     * @param id Order id
+     * @param date Date of the order
+     * @param customerID ID of the customer
+     * @param pricingStrategy Strategy for how the total cost will be calculated
+     * @param oneOffInvoiceStrategy strategy for how the invoice will be created
+     */
     public OneOffOrder(int id, LocalDateTime date, int customerID, PricingStrategy pricingStrategy, OneOffInvoiceStrategy oneOffInvoiceStrategy) {
         this.id = id;
         this.date = date;
@@ -30,6 +40,14 @@ public class OneOffOrder implements Order {
         this.oneOffInvoiceStrategy = oneOffInvoiceStrategy;
     }
 
+    /**
+     * Constructor for the subscription Orders super() method, needs a separate constructor as
+     * a subscription order has a different type of invoice generator
+     * @param id order id
+     * @param date date of order
+     * @param customerID Id of customer
+     * @param pricingStrategy Strategy for how total cost is calculated
+     */
     protected OneOffOrder(int id, LocalDateTime date, int customerID, PricingStrategy pricingStrategy) {
         this.id = id;
         this.date = date;
@@ -96,12 +114,20 @@ public class OneOffOrder implements Order {
         return copy;
     }
 
+    /**
+     * Uses the invoice strategy to generate the invoice string
+     * @return InvoiceData
+     */
     @Override
     public String generateInvoiceData() {
         OneOffInvoiceData oneOffInvoiceData = new OneOffInvoiceData(this.getTotalCost(), this.products);
         return oneOffInvoiceStrategy.generateInvoiceData(oneOffInvoiceData);
     }
 
+    /**
+     * Uses the pricing strategy to calculate the total cost of the order
+     * @return Total cost for the order
+     */
     @Override
     public double getTotalCost() {
         CostData costData = new CostData(this.products);

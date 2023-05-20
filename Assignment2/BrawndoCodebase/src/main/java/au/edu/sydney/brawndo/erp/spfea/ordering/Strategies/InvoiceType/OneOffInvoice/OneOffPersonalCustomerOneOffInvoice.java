@@ -8,8 +8,17 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Invoice strategy for a one-off personal customer order
+ */
 public class OneOffPersonalCustomerOneOffInvoice implements OneOffInvoiceStrategy {
 
+
+    /**
+     * Generating the invoice data
+     * @param oneOffInvoiceData Data required for the invoice
+     * @return The invoice data
+     */
     @Override
     public String generateInvoiceData(OneOffInvoiceData oneOffInvoiceData) {
         StringBuilder sb = new StringBuilder();

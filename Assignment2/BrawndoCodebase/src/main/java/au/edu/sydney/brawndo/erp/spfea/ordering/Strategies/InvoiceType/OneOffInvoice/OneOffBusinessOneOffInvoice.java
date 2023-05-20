@@ -3,6 +3,9 @@ package au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.InvoiceType.OneOffIn
 import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.InvoiceType.OneOffInvoice.OneOffInvoiceData;
 import au.edu.sydney.brawndo.erp.spfea.ordering.Strategies.InvoiceType.OneOffInvoice.OneOffInvoiceStrategy;
 
+/**
+ * Invoice strategy for a one-off business order
+ */
 public class OneOffBusinessOneOffInvoice implements OneOffInvoiceStrategy {
     @Override
     public String generateInvoiceData(OneOffInvoiceData oneOffInvoiceData) {

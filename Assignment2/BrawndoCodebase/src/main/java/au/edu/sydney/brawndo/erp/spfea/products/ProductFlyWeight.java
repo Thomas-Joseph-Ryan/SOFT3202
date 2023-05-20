@@ -7,6 +7,13 @@ public class ProductFlyWeight {
     private double[] safetyData;
     private double[] licensingData;
 
+    /**
+     * Fly weight object containing intrinsic data from the fly weight
+     * @param recipeData
+     * @param marketingData
+     * @param safetyData
+     * @param licensingData
+     */
     public ProductFlyWeight(double[] recipeData, double[] marketingData, double[] safetyData, double[] licensingData) {
         this.licensingData = licensingData;
         this.recipeData = recipeData;

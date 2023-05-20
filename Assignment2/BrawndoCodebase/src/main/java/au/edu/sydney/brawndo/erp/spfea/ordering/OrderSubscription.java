@@ -14,13 +14,25 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+
+/**
+ * Generic class for all subscription orders
+ */
 @SuppressWarnings("Duplicates")
 public class OrderSubscription extends OneOffOrder implements SubscriptionOrder {
 
     private int numShipments;
     private SubscriptionInvoiceStrategy subscriptionInvoiceStrategy;
 
-
+    /**
+     * Constructor for subscription order
+     * @param id order id
+     * @param date date of order
+     * @param customerID customer id whose order this is
+     * @param numShipments Number of shipments included in the subscription
+     * @param pricingStrategy Strategy for calculating total cost
+     * @param subscriptionInvoiceStrategy Strategy for creating invoice
+     */
     public OrderSubscription(int id, LocalDateTime date, int customerID, int numShipments, PricingStrategy pricingStrategy, SubscriptionInvoiceStrategy subscriptionInvoiceStrategy) {
         super(id, date, customerID, pricingStrategy);
         this.numShipments = numShipments;

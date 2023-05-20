@@ -20,6 +20,12 @@ public class CustomerImpl implements Customer {
     private String businessName;
     private String pigeonCoopID;
 
+    /**
+     * Assigns known data to object attributes now, all unknown objects
+     * are only looked up when needed using lazy loading
+     * @param token Authority token
+     * @param id Customer id
+     */
     public CustomerImpl(AuthToken token, int id) {
         this.id = id;
         this.token = token;
@@ -29,6 +35,11 @@ public class CustomerImpl implements Customer {
         return id;
     }
 
+    /**
+     * Gets customer fName from database if not gotten before.
+     * All other get methods work the same way in this class
+     * @return Customer first name
+     */
     @Override
     public String getfName() {
         if (this.fName == null) {

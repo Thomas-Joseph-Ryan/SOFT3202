@@ -5,6 +5,9 @@ import au.edu.sydney.brawndo.erp.ordering.Product;
 import java.util.Arrays;
 import java.util.Objects;
 
+/**
+ * Implementation of the product
+ */
 public class ProductImpl implements Product {
 
     private final String name;
@@ -13,6 +16,20 @@ public class ProductImpl implements Product {
     private ProductFlyWeight productFlyWeight;
     private String hashValue;
 
+    /**
+     * Constructor for product object. name, cost and manufacturing data are extrinsic and recipe data, marketing data,
+     * safety date and licensing data are intrinsic.
+     *
+     * This constructor tries to use the Flyweight Factory to see if there is an existing object with the same intrinsic
+     * data to share the memory of to reduce RAM usage
+     * @param name name of product
+     * @param cost cost of product
+     * @param manufacturingData Manufacturing data
+     * @param recipeData Recipe data
+     * @param marketingData Marketing data
+     * @param safetyData Safety Data
+     * @param licensingData Licensing Data
+     */
     public ProductImpl(String name,
                        double cost,
                        double[] manufacturingData,
@@ -68,6 +85,11 @@ public class ProductImpl implements Product {
         return String.format("%s", name);
     }
 
+    /**
+     * Method to check whether an object is equal to this product
+     * @param obj Object to check
+     * @return True if the same, false otherwise
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -92,11 +114,26 @@ public class ProductImpl implements Product {
                 Arrays.equals(this.getLicensingData(), other.getLicensingData());
     }
 
+    /**
+     * Modified hashCode() method as equals() method got changed.
+     * @return The modified hashValue
+     */
     @Override
     public int hashCode() {
         return Objects.hash(hashValue);
     }
 
+    /**
+     * Generates the hashValue for this product
+     * @param recipeData
+     * @param marketingData
+     * @param safetyData
+     * @param licensingData
+     * @param manufacturingData
+     * @param name
+     * @param cost
+     * @return A hash string making comparison easy.
+     */
     private String generateHashValue(double[] recipeData,
                                      double[] marketingData,
                                      double[] safetyData,

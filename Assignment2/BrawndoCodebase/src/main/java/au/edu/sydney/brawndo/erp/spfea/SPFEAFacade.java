@@ -51,6 +51,18 @@ public class SPFEAFacade {
         return result;
     }
 
+    /**
+     * Creates the order, using the correct strategies and order types based on the inputs
+     * @param customerID
+     * @param date
+     * @param isBusiness
+     * @param isSubscription
+     * @param discountType
+     * @param discountThreshold
+     * @param discountRateRaw
+     * @param numShipments
+     * @return The new order
+     */
     public Integer createOrder(int customerID, LocalDateTime date, boolean isBusiness, boolean isSubscription, int discountType, int discountThreshold, int discountRateRaw, int numShipments) {
         if (null == token) {
             throw new SecurityException();
@@ -148,6 +160,12 @@ public class SPFEAFacade {
     ContactHandler baseHandler = new BaseHandler();
     ContactHandler currentLowestPriorityHandler = baseHandler;
 
+    /**
+     * Uses chain of command to contact the owner once the order is finalised
+     * @param orderID Id of the order
+     * @param contactPriority The contact priority list of the user
+     * @return True if customer is contacted, false otherwise.
+     */
     public boolean finaliseOrder(int orderID, List<String> contactPriority) {
         if (null == token) {
             throw new SecurityException();
