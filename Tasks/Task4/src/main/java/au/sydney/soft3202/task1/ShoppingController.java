@@ -89,39 +89,60 @@ public class ShoppingController {
         return costs;
     }
 
-    record ItemAndCount(String name, Integer count) {
+    record ItemAndStringCount(String name, String count) {
     }
 
     @PostMapping("users/{username}/add")
-    public ResponseEntity<Void> addItemToUserCart(@PathVariable String username, @RequestBody ItemAndCount itemAndCount) {
+    public ResponseEntity<String> addItemToUserCart(@PathVariable String username, @RequestBody ItemAndStringCount itemAndCount) {
         if (costs.containsKey(itemAndCount.name)) {
-            Boolean added = false;
             List<ShoppingBasket> baskets = shoppingBasket.findAll();
             for (ShoppingBasket basket : baskets) {
                 if (basket.getUser().equals(username) && basket.getName().equals(itemAndCount.name)) {
-                    basket.setCount(basket.getCount() + itemAndCount.count);
-                    added = true;
-                    break;
+                    Integer totalCount = basket.getCount() + Integer.parseInt(itemAndCount.count);
+                    basket.setCount(totalCount);
+                    shoppingBasket.save(basket);
+                    return ResponseEntity.ok("Added to existing cart - total count = " + totalCount );
                 }
             }
-            if (!added) {
-                ShoppingBasket shoppingBasket = new ShoppingBasket();
-                shoppingBasket.setUser(username);
-                shoppingBasket.setCount(itemAndCount.count);
-                shoppingBasket.setName(itemAndCount.name);
-//                Save basket?
-            }
+            ShoppingBasket basket = new ShoppingBasket();
+            basket.setUser(username);
+            basket.setCount(Integer.parseInt(itemAndCount.count));
+            basket.setName(itemAndCount.name);
+            shoppingBasket.save(basket);
+            return ResponseEntity.ok("Created new cart");
+        } else {
+            return ResponseEntity.badRequest().build();
         }
     }
 
+    public record ItemCountString(String count) {}
+    @PutMapping("users/{username}/basket/{itemName}")
+    public ResponseEntity<String> updateItemInUserCart(@PathVariable String itemName, @RequestBody ItemCountString count, @PathVariable String username) {
+        if (costs.containsKey(itemName)) {
+            List<ShoppingBasket> baskets = shoppingBasket.findAll();
+            for (ShoppingBasket basket : baskets) {
+                if (basket.getUser().equals(username) && basket.getName().equals(itemName)) {
+                    basket.setCount(Integer.parseInt(count.count));
+                    shoppingBasket.save(basket);
+                    return ResponseEntity.ok("Updated existing cart - total count = " + count.count );
+                }
+            }
+            return ResponseEntity.ok("Count could not be updated as user does not have cart with this item");
+        } else {
+            return ResponseEntity.badRequest().body("Item does not exist in cost map");
+        }
+    }
+
+    public record ItemAndIntCount(String name, Integer count){}
+
     @GetMapping("users/{username}")
-    public List<ItemAndCount> getItemsOfUser(@PathVariable String username) {
+    public List<ItemAndIntCount> getItemsOfUser(@PathVariable String username) {
         List<ShoppingBasket> baskets = shoppingBasket.findAll();
 
-        List<ItemAndCount> items = new LinkedList<>();
+        List<ItemAndIntCount> items = new LinkedList<>();
         for (ShoppingBasket basket : baskets) {
             if (basket.getUser().equals(username)) {
-                items.add(new ItemAndCount(basket.getName(), basket.getCount()));
+                items.add(new ItemAndIntCount(basket.getName(), basket.getCount()));
             }
         }
 
@@ -144,6 +165,26 @@ public class ShoppingController {
         return cost;
     }
 
+    @DeleteMapping("users/{username}")
+    public ResponseEntity<String> deleteUser(@PathVariable String username) {
+        List<ShoppingBasket> baskets = shoppingBasket.findAll();
+        for (ShoppingBasket basket : baskets) {
+            if (basket.getUser().equals(username)) {
+                shoppingBasket.delete(basket);
+            }
+        }
+        return ResponseEntity.ok(username + " successfully deleted");
+    }
 
+    @DeleteMapping("users/{username}/basket/{itemName}")
+    public ResponseEntity<String> deleteItemFromUserBasket(@PathVariable String username, @PathVariable String itemName) {
+        List<ShoppingBasket> baskets = shoppingBasket.findAll();
+        for (ShoppingBasket basket : baskets) {
+            if (basket.getUser().equals(username) && basket.getName().equals(itemName)) {
+                shoppingBasket.delete(basket);
+            }
+        }
+        return ResponseEntity.ok(itemName + " sucessfully deleted from " + username);
+    }
 
 }
